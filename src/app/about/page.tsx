@@ -3,10 +3,12 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "About — Faza",
-  description: "A two-party show-up bond on Arc. Stake USDC. Check in. Or lose it.",
+  description:
+    "Faza is an onchain ticket for two-party deals on Arc. Show-up bonds and OTC deal tickets, both settled in USDC.",
 };
 
-const CONTRACT = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS ?? "";
+const BOND_ADDR = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS ?? "";
+const OTC_ADDR = process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS ?? "";
 
 export default function AboutPage() {
   return (
@@ -52,49 +54,58 @@ export default function AboutPage() {
         }}
       >
         <p>
-          Faza is a two-party show-up bond: one wallet opens a bond with a title, a
-          deadline, and a USDC stake; a second wallet joins and locks the same amount;
-          both wallets check in onchain before the deadline, and each gets their stake
-          back — if one ghosts, the other takes both stakes.
+          Faza is an onchain ticket for two-party commitments settled in USDC on Arc.
+          The first instrument is a show-up bond: both parties stake USDC, check in before
+          a deadline, and each gets their stake back. The one who ghosts forfeits their stake
+          to the one who showed. The second instrument is an OTC deal ticket: two parties
+          commit to a trade, hash the terms onchain, and settle either a live token swap or
+          a USDC bond against an offchain transfer.
         </p>
 
         <p>
-          It runs on Arc, where USDC is the native gas token. There is no separate ETH
-          to bridge or buy. Gas fees are stable and measured in fractions of a cent, so
-          a $0.01 stake is not eaten by gas before it settles. That makes tiny
-          coordination bonds practical for the first time.
+          Arc is where USDC is the native gas token — no separate ETH to bridge or buy.
+          Gas fees are stable and cost fractions of a cent, so a $0.01 stake or a small
+          OTC bond is not eaten by gas before it settles. That makes tiny coordination
+          instruments practical for the first time.
         </p>
 
         <p>
-          Every action — create, join, checkIn, settle — is a real on-chain transaction
-          against the{" "}
-          <span className="mono" style={{ fontSize: "0.875rem" }}>FazaBond</span>{" "}
-          contract. Settlement outcome is determined entirely by the contract logic. No
-          server can override it, and nothing unlocks without a confirmed transaction.
+          Every action — create, join, checkIn, attest, confirmDone, settle — is a real
+          onchain transaction. Settlement is determined entirely by contract logic in
+          <span className="mono" style={{ fontSize: "0.875em" }}> FazaBond</span> and
+          <span className="mono" style={{ fontSize: "0.875em" }}> FazaOTC</span>.
+          No server can override it, and nothing moves without a confirmed transaction.
+          For OTC deals where the asset is an Arc token, the contract does a literal PvP
+          swap: tokens go to the buyer, USDC goes to the seller, in one call. For offchain
+          stock or any asset that lives outside Arc, the contract holds only the terms hash
+          and the USDC bond — the share itself does not teleport.
         </p>
 
         <p>
-          To see it live: connect <strong>Wallet A</strong> to Arc Testnet, click{" "}
-          <strong>New bond</strong>, set a title, stake $0.50 USDC, and a deadline
-          30 minutes out. Copy the bond URL and open it in a second browser profile with{" "}
-          <strong>Wallet B</strong>. Wallet B joins. Both wallets click{" "}
+          <strong>Judge path — Bond:</strong> Connect Wallet A to Arc Testnet, click{" "}
+          <strong>New bond</strong> on the Bonds tab, stake $0.50 USDC, set a deadline
+          30 minutes out. Copy the bond URL. Open it in a second browser profile with{" "}
+          Wallet B. Wallet B clicks <strong>Join</strong>. Both wallets click{" "}
           <strong>Check in</strong>. After the deadline, either wallet clicks{" "}
-          <strong>Settle</strong> — the contract refunds both stakes and generates two
-          explorer links you can share with a judge.
+          <strong>Settle</strong>, then <strong>Claim</strong>. Both stakes return.
+          You have two explorer links.
         </p>
 
         <p>
-          For the ghost scenario: create a bond, join from Wallet B, but only check
-          in from one wallet. After the deadline, settle — the wallet that checked in
-          receives both stakes, provably, onchain, with no intermediary.
+          <strong>Judge path — OTC (offchain bond):</strong> Click <strong>New OTC deal</strong>{" "}
+          on the OTC tab. Leave asset blank (offchain). Paste a term sheet, note the hash.
+          Wallet B joins with the same hash — if the hashes differ the contract reverts.
+          Both wallets click <strong>Attest</strong>, then <strong>Confirm done</strong>.
+          After the deadline, either wallet settles. Both stakes return.
         </p>
 
         <p>
-          No token, no DAO, no feed, no chat — just USDC, Arc, and a deadline.
+          No token, no DAO, no order book, no price feed. Just USDC, Arc, a deadline,
+          and the party that did not show up losing the stake.
         </p>
       </div>
 
-      {/* Contract card */}
+      {/* Contracts card */}
       <div
         style={{
           background: "var(--surface)",
@@ -103,7 +114,7 @@ export default function AboutPage() {
           padding: "1.25rem",
           display: "flex",
           flexDirection: "column",
-          gap: "0.6rem",
+          gap: "1rem",
         }}
       >
         <p
@@ -116,23 +127,11 @@ export default function AboutPage() {
             margin: 0,
           }}
         >
-          Contract · Arc Testnet
+          Contracts · Arc Testnet
         </p>
-        {CONTRACT ? (
-          <a
-            className="mono"
-            href={`https://explorer.testnet.arc.io/address/${CONTRACT}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: "0.82rem", color: "var(--accent)", wordBreak: "break-all" }}
-          >
-            {CONTRACT}
-          </a>
-        ) : (
-          <p className="mono" style={{ fontSize: "0.8rem", color: "var(--subtle)", margin: 0 }}>
-            Not deployed — set NEXT_PUBLIC_FAZABOND_ADDRESS in .env
-          </p>
-        )}
+
+        <ContractRow label="FazaBond" addr={BOND_ADDR} />
+        <ContractRow label="FazaOTC" addr={OTC_ADDR} />
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginTop: "0.25rem" }}>
           <InfoRow label="USDC" value="0x3600…0000" />
@@ -145,8 +144,41 @@ export default function AboutPage() {
         href="/"
         style={{ fontSize: "0.85rem", color: "var(--muted)", textDecoration: "none" }}
       >
-        ← Back to bonds
+        ← Back
       </Link>
+    </div>
+  );
+}
+
+function ContractRow({ label, addr }: { label: string; addr: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <span
+        style={{
+          fontSize: "0.65rem",
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "var(--subtle)",
+        }}
+      >
+        {label}
+      </span>
+      {addr ? (
+        <a
+          className="mono"
+          href={`https://explorer.testnet.arc.io/address/${addr}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: "0.82rem", color: "var(--accent)", wordBreak: "break-all" }}
+        >
+          {addr}
+        </a>
+      ) : (
+        <span className="mono" style={{ fontSize: "0.8rem", color: "var(--subtle)" }}>
+          not set — add NEXT_PUBLIC_{label.toUpperCase().replace(/[^A-Z]/g, "_")}_ADDRESS to .env
+        </span>
+      )}
     </div>
   );
 }
