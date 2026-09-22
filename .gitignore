@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Foundry artifacts
+contracts/out/
+contracts/cache/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Data directory — ephemeral, contains body text
+data/
+
+# Circle / Arc Studio
+.circle/
+contracts/contract-metadata/
+
+# OS
+.DS_Store
+Thumbs.db
+.next/
+data/

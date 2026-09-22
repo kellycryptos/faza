@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Palette */
+  --bg:           #07080B;
+  --surface:      #10141C;
+  --surface-muted:#0D111A;
+  --border:       #1C2433;
+  --border-strong:#2A3547;
+
+  /* Text */
+  --ink:          #F4F6FA;
+  --ink-2:        #C8D0DE;
+  --muted:        #9AA3B2;
+  --subtle:       #5A6478;
+
+  /* Accent — electric teal */
+  --accent:       #2EE6A6;
+  --accent-dim:   rgba(46, 230, 166, 0.12);
+  --accent-glow:  rgba(46, 230, 166, 0.25);
+
+  /* Semantic */
+  --success:      #2EE6A6;
+  --danger:       #FF5C7A;
+  --danger-dim:   rgba(255, 92, 122, 0.12);
+  --amber:        #F5A623;
+  --amber-dim:    rgba(245, 166, 35, 0.12);
+
+  /* Radius */
+  --radius-card:  16px;
+  --radius-pill:  999px;
+  --radius-btn:   10px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  min-height: 100dvh;
+}
+
+/* Tabular numbers for USDC amounts */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Monospace */
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+}
+
+/* Display heading */
+.display {
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+a { color: inherit; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
