@@ -2,373 +2,249 @@
 
 import { useState } from "react";
 import { useReadContract } from "wagmi";
-import Link from "next/link";
 import { CreateForm } from "@/components/CreateForm";
 import { BondCard } from "@/components/BondCard";
+import { OtcCreateForm } from "@/components/OtcCreateForm";
+import { DealCard } from "@/components/DealCard";
 import { useBonds } from "@/hooks/useBonds";
-import { activeChain, explorerAddress } from "@/lib/arc";
+import { useDeals } from "@/hooks/useDeals";
+import { activeChain } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS } from "@/lib/contract";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS } from "@/lib/otc-contract";
+
+type Tab = "bond" | "otc";
 
 export default function HomePage() {
+  const [tab, setTab] = useState<Tab>("bond");
   const [composing, setComposing] = useState(false);
-  const [refreshSeed, setRefreshSeed] = useState(0);
+  const [bondSeed, setBondSeed] = useState(0);
+  const [dealSeed, setDealSeed] = useState(0);
 
-  const { data: bondCount, refetch: refetchCount } = useReadContract({
-    address: FAZABOND_ADDRESS || undefined,
-    abi: FAZABOND_ABI,
-    functionName: "bondCount",
-    chainId: activeChain.id,
+  const { data: bondCountRaw, refetch: refetchBondCount } = useReadContract({
+    address: FAZABOND_ADDRESS || undefined, abi: FAZABOND_ABI,
+    functionName: "bondCount", chainId: activeChain.id,
     query: { enabled: !!FAZABOND_ADDRESS, refetchInterval: 8000 },
   });
+  const { data: dealCountRaw, refetch: refetchDealCount } = useReadContract({
+    address: FAZAOTC_ADDRESS || undefined, abi: FAZAOTC_ABI,
+    functionName: "dealCount", chainId: activeChain.id,
+    query: { enabled: !!FAZAOTC_ADDRESS, refetchInterval: 8000 },
+  });
 
-  const count = Number(bondCount ?? 0n);
-  const { bonds, isLoading, refetch } = useBonds(count + (refreshSeed > 0 ? 0 : 0));
+  const bondCount = Number(bondCountRaw ?? 0n) + (bondSeed > 0 ? 0 : 0);
+  const dealCount = Number(dealCountRaw ?? 0n) + (dealSeed > 0 ? 0 : 0);
+  const { bonds, isLoading: bondsLoading, refetch: refetchBonds } = useBonds(bondCount);
+  const { deals, isLoading: dealsLoading, refetch: refetchDeals } = useDeals(dealCount);
 
-  const handleCreated = () => {
-    setComposing(false);
-    refetchCount();
-    refetch();
-    setRefreshSeed((s) => s + 1);
-  };
+  const handleBondCreated = () => { setComposing(false); refetchBondCount(); refetchBonds(); setBondSeed(s => s + 1); };
+  const handleDealCreated = () => { setComposing(false); refetchDealCount(); refetchDeals(); setDealSeed(s => s + 1); };
 
   return (
-    <>
-      {/* Hero — with radial glow */}
-      <section
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
+
+      {/* Hero */}
+      <div
         style={{
-          position: "relative",
-          overflow: "hidden",
-          padding: "5rem 1.25rem 4rem",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "1.5rem",
+          position: "relative", textAlign: "center",
+          padding: "4rem 1rem 3rem", overflow: "hidden",
         }}
       >
-        {/* Deep-blue radial glow */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: "-40%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 800,
-            height: 500,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(ellipse at center, rgba(30,60,120,0.28) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
+        {/* Radial glow */}
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          transform: "translate(-50%,-60%)",
+          width: 600, height: 400,
+          background: "radial-gradient(ellipse at center, rgba(18,52,90,0.55) 0%, transparent 70%)",
+          pointerEvents: "none", zIndex: 0,
+        }} />
 
-        {/* Eyebrow */}
-        <span
-          style={{
-            fontSize: "0.72rem",
-            fontWeight: 700,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "var(--accent)",
-          }}
-        >
-          Faza
-        </span>
+        <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+          <span style={{
+            fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.18em",
+            textTransform: "uppercase", color: "var(--accent)",
+          }}>FAZA</span>
 
-        {/* H1 */}
-        <h1
-          className="display"
-          style={{
-            fontSize: "clamp(2.25rem, 6vw, 3.75rem)",
-            fontWeight: 900,
-            color: "var(--ink)",
-            maxWidth: "16ch",
-            margin: 0,
-          }}
-        >
-          Show up,<br />or forfeit the stake.
-        </h1>
+          <h1 className="display" style={{
+            fontSize: "clamp(2rem,6vw,3.2rem)", fontWeight: 800,
+            color: "var(--ink)", letterSpacing: "-0.04em",
+            maxWidth: "16ch", margin: 0,
+          }}>
+            Show up, or forfeit the stake.
+          </h1>
 
-        {/* Sub */}
-        <p
-          style={{
-            fontSize: "clamp(1rem, 2vw, 1.15rem)",
-            color: "var(--muted)",
-            maxWidth: "48ch",
-            lineHeight: 1.65,
-          }}
-        >
-          Two wallets lock USDC on Arc. Both check in before the deadline and the
-          stake returns. One ghosts and the other takes both.
-        </p>
+          <p style={{ color: "var(--muted)", fontSize: "clamp(0.9rem,2vw,1.05rem)", maxWidth: "48ch", lineHeight: 1.6, margin: 0 }}>
+            Two wallets lock USDC on Arc. Both check in before the deadline and the stake returns. One ghosts and the other takes both.
+          </p>
 
-        {/* CTA row */}
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
-          <button
-            onClick={() => { setComposing(true); document.getElementById("open-fazas")?.scrollIntoView({ behavior: "smooth" }); }}
-            style={primaryBtn}
-          >
-            New bond
-          </button>
-          <Link href="/about" style={{ ...secondaryBtn, display: "inline-flex", alignItems: "center" }}>
-            How it works
-          </Link>
-        </div>
-
-        {/* Stats row */}
-        <div
-          style={{
-            display: "flex",
-            gap: "0",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            borderRadius: "var(--radius-card)",
-            border: "1px solid var(--border)",
-            background: "var(--surface)",
-            overflow: "hidden",
-            marginTop: "0.5rem",
-            width: "100%",
-            maxWidth: 480,
-          }}
-        >
-          {[
-            { label: "Stake in USDC", desc: "$0.01 – $100" },
-            { label: "Check in onchain", desc: "Real tx, not a click" },
-            { label: "Settle after deadline", desc: "Winner takes the pot" },
-          ].map((s, i, arr) => (
-            <div
-              key={s.label}
-              style={{
-                flex: "1 1 140px",
-                padding: "1.1rem 1rem",
-                textAlign: "center",
-                borderRight: i < arr.length - 1 ? "1px solid var(--border)" : "none",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "0.7rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--accent)",
-                }}
-              >
-                {s.label}
+          {/* Stats row */}
+          <div style={{
+            display: "flex", gap: "0", marginTop: "1.5rem",
+            border: "1px solid var(--border)", borderRadius: "var(--radius-card)",
+            overflow: "hidden", background: "var(--surface)",
+          }}>
+            {[
+              { n: "USDC", label: "Stake in" },
+              { n: "Onchain", label: "Check in" },
+              { n: "After deadline", label: "Settle" },
+            ].map((s, i) => (
+              <div key={i} style={{
+                padding: "0.9rem 1.4rem", borderRight: i < 2 ? "1px solid var(--border)" : undefined,
+                display: "flex", flexDirection: "column", gap: 2, flex: 1,
+              }}>
+                <span className="tabular" style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--ink)" }}>{s.n}</span>
+                <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>{s.label}</span>
               </div>
-              <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 3 }}>
-                {s.desc}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </section>
+      </div>
 
       {/* How it works */}
-      <section
-        style={{
-          maxWidth: 760,
-          margin: "0 auto",
-          padding: "0 1.25rem 3.5rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.25rem",
-        }}
-      >
-        <h2 style={sectionLabel}>How it works</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: "1px",
-            background: "var(--border)",
-            borderRadius: "var(--radius-card)",
-            overflow: "hidden",
-            border: "1px solid var(--border)",
-          }}
-        >
+      <div style={{ marginBottom: "2.5rem" }}>
+        <p style={sectionCap}>How it works</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: "0.65rem", marginTop: "0.75rem" }}>
           {[
-            { n: "1", text: "Create a Faza with a title, stake, and deadline" },
-            { n: "2", text: "Second wallet joins and matches the stake" },
-            { n: "3", text: "Both check in before time runs out" },
-            { n: "4", text: "Settle: refund both, or the one who showed takes the pot" },
-          ].map((step) => (
-            <div
-              key={step.n}
-              style={{
-                background: "var(--surface)",
-                padding: "1.25rem 1.1rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.6rem",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "1.5rem",
-                  fontWeight: 800,
-                  color: "var(--border-strong)",
-                  lineHeight: 1,
-                }}
-              >
-                {step.n}
-              </span>
-              <p style={{ fontSize: "0.88rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
-                {step.text}
-              </p>
+            "Create a bond or OTC deal with a title, stake, and deadline.",
+            "Second wallet joins and matches the stake.",
+            "Both check in (bond) or attest + confirm done (OTC) before time runs out.",
+            "Settle: refund both — or the one who showed takes the pot.",
+          ].map((text, i) => (
+            <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "0.9rem 1rem", display: "flex", gap: "0.65rem" }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--accent)", minWidth: 18 }}>{i + 1}</span>
+              <p style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.5, margin: 0 }}>{text}</p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Open Fazas */}
-      <section
-        id="open-fazas"
-        style={{
-          maxWidth: 760,
-          margin: "0 auto",
-          padding: "0 1.25rem 2rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={sectionLabel}>Open Fazas</h2>
-          <button
-            onClick={() => setComposing((v) => !v)}
-            style={{
-              ...secondaryBtn,
-              padding: "0.35rem 0.85rem",
-              fontSize: "0.78rem",
-            }}
-          >
-            {composing ? "Cancel" : "+ New bond"}
-          </button>
-        </div>
-
-        {/* Create form */}
-        {composing && (
-          <div style={cardShell}>
-            <CreateForm onCreated={handleCreated} />
-          </div>
-        )}
-
-        {!FAZABOND_ADDRESS && (
-          <div style={{ ...cardShell, color: "var(--subtle)", fontSize: "0.85rem" }}>
-            Contract not yet deployed — set{" "}
-            <code style={{ fontFamily: "monospace", color: "var(--muted)" }}>NEXT_PUBLIC_FAZABOND_ADDRESS</code> in .env.
-          </div>
-        )}
-
-        {FAZABOND_ADDRESS && isLoading && (
-          <div style={{ padding: "2rem 0", textAlign: "center", color: "var(--subtle)", fontSize: "0.9rem" }}>
-            Loading bonds…
-          </div>
-        )}
-
-        {FAZABOND_ADDRESS && !isLoading && bonds.length === 0 && (
-          <div
-            style={{
-              border: "1px dashed var(--border)",
-              borderRadius: "var(--radius-card)",
-              padding: "3rem 1.5rem",
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "1rem",
-            }}
-          >
-            <p style={{ color: "var(--muted)", fontSize: "0.95rem" }}>
-              No bonds yet. Create the first one.
-            </p>
-            <button onClick={() => setComposing(true)} style={primaryBtn}>
-              New bond
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", alignItems: "center" }}>
+        <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
+          {(["bond", "otc"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => { setTab(t); setComposing(false); }}
+              style={{
+                background: tab === t ? "var(--border-strong)" : "transparent",
+                color: tab === t ? "var(--ink)" : "var(--muted)",
+                border: "none", borderRadius: 8, padding: "0.35rem 0.9rem",
+                fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              {t === "bond" ? "Show-up bonds" : "OTC deals"}
             </button>
-          </div>
-        )}
+          ))}
+        </div>
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => setComposing(v => !v)}
+          style={{
+            background: "var(--accent)", color: "#050B14",
+            border: "none", borderRadius: "var(--radius-btn)",
+            padding: "0.45rem 1rem", fontSize: "0.82rem",
+            fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
+          }}
+        >
+          {composing ? "Cancel" : tab === "bond" ? "New bond" : "New deal"}
+        </button>
+      </div>
 
-        {bonds.map((b) => (
-          <BondCard key={b.id} bond={b} />
-        ))}
-      </section>
+      {/* Compose panel */}
+      {composing && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-card)", padding: "1.5rem", marginBottom: "1.25rem" }}>
+          {tab === "bond"
+            ? <CreateForm onCreated={handleBondCreated} />
+            : <OtcCreateForm onCreated={handleDealCreated} />
+          }
+        </div>
+      )}
+
+      {/* Feed */}
+      {tab === "bond" && (
+        <FeedSection
+          label={`Open bonds (${bonds.length})`}
+          loading={bondsLoading}
+          empty={!FAZABOND_ADDRESS ? "Contract not deployed." : "No bonds yet. Create the first one."}
+          deployed={!!FAZABOND_ADDRESS}
+        >
+          {bonds.map((b) => <BondCard key={b.id} bond={b} />)}
+        </FeedSection>
+      )}
+
+      {tab === "otc" && (
+        <FeedSection
+          label={`OTC deals (${deals.length})`}
+          loading={dealsLoading}
+          empty={!FAZAOTC_ADDRESS ? "OTC contract not deployed." : "No deals yet. Create the first one."}
+          deployed={!!FAZAOTC_ADDRESS}
+        >
+          {deals.map((d) => <DealCard key={d.id} deal={d} />)}
+        </FeedSection>
+      )}
 
       {/* Footer */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--border)",
-          padding: "1.5rem 1.25rem",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-          justifyContent: "center",
-          alignItems: "center",
-          fontSize: "0.75rem",
-          color: "var(--subtle)",
-        }}
-      >
-        {FAZABOND_ADDRESS ? (
-          <a
-            href={explorerAddress(FAZABOND_ADDRESS)}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", fontFamily: "monospace", fontSize: "0.72rem" }}
-          >
-            {FAZABOND_ADDRESS.slice(0, 10)}…{FAZABOND_ADDRESS.slice(-6)}
-          </a>
-        ) : (
-          <span>Contract not deployed</span>
-        )}
-        <span style={{ color: "var(--border-strong)" }}>·</span>
-        <span>Built on Arc</span>
-        <span style={{ color: "var(--border-strong)" }}>·</span>
-        <span>USDC gas</span>
+      <footer style={{
+        marginTop: "4rem", paddingTop: "1.5rem",
+        borderTop: "1px solid var(--border)",
+        display: "flex", flexWrap: "wrap", gap: "1rem",
+        justifyContent: "space-between", alignItems: "center",
+      }}>
+        <p style={{ fontSize: "0.75rem", color: "var(--subtle)", margin: 0 }}>
+          Built on Arc · USDC gas
+        </p>
+        <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
+          {FAZABOND_ADDRESS && (
+            <a
+              className="mono"
+              href={`https://explorer.testnet.arc.io/address/${FAZABOND_ADDRESS}`} // arc-studio-allow-onchain-literal
+              target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: "0.7rem", color: "var(--subtle)", textDecoration: "none" }}
+            >
+              Bond: {FAZABOND_ADDRESS.slice(0, 10)}…
+            </a>
+          )}
+          {FAZAOTC_ADDRESS && (
+            <a
+              className="mono"
+              href={`https://explorer.testnet.arc.io/address/${FAZAOTC_ADDRESS}`} // arc-studio-allow-onchain-literal
+              target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: "0.7rem", color: "var(--subtle)", textDecoration: "none" }}
+            >
+              OTC: {FAZAOTC_ADDRESS.slice(0, 10)}…
+            </a>
+          )}
+        </div>
       </footer>
-    </>
+    </div>
   );
 }
 
-const sectionLabel: React.CSSProperties = {
-  fontSize: "0.72rem",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  color: "var(--subtle)",
-  margin: 0,
-};
+function FeedSection({ label, loading, empty, deployed, children }: {
+  label: string; loading: boolean; empty: string; deployed: boolean; children: React.ReactNode;
+}) {
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <p style={sectionCap}>{label}</p>
+      {!deployed && <p style={{ fontSize: "0.85rem", color: "var(--subtle)" }}>{empty}</p>}
+      {deployed && loading && <p style={{ fontSize: "0.85rem", color: "var(--subtle)" }}>Loading…</p>}
+      {deployed && !loading && !React.Children.count(children) && (
+        <div style={{
+          background: "var(--surface)", border: "1px dashed var(--border)",
+          borderRadius: "var(--radius-card)", padding: "2.5rem 1.5rem",
+          textAlign: "center", color: "var(--subtle)", fontSize: "0.9rem",
+        }}>
+          {empty}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
 
-const primaryBtn: React.CSSProperties = {
-  background: "var(--accent)",
-  color: "#050B14",
-  border: "none",
-  borderRadius: "var(--radius-btn)",
-  padding: "0.7rem 1.5rem",
-  fontSize: "0.9rem",
-  fontFamily: "'Inter', sans-serif",
-  fontWeight: 700,
-  cursor: "pointer",
-  letterSpacing: "-0.01em",
-};
+import React from "react";
 
-const secondaryBtn: React.CSSProperties = {
-  background: "var(--surface)",
-  color: "var(--ink-2)",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius-btn)",
-  padding: "0.7rem 1.25rem",
-  fontSize: "0.9rem",
-  fontFamily: "'Inter', sans-serif",
-  fontWeight: 600,
-  cursor: "pointer",
-  textDecoration: "none",
-};
-
-const cardShell: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius-card)",
-  padding: "1.5rem",
+const sectionCap: React.CSSProperties = {
+  fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em",
+  textTransform: "uppercase", color: "var(--subtle)", margin: 0,
 };

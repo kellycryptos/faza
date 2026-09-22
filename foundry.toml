@@ -4,6 +4,9 @@ out = "contracts/out"
 libs = ["node_modules"]
 evm_version = "paris"
 solc_version = "0.8.24"
+via_ir = true
+optimizer = true
+optimizer_runs = 200
 remappings = [
   "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
 ]

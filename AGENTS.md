@@ -5,6 +5,7 @@
 | Contract | Chain | Address | Explorer |
 |---|---|---|---|
 | FazaBond | Arc Testnet (5042002) | `0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221` | [View](https://explorer.testnet.arc.io/address/0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221) |
+| FazaOTC | Arc Testnet (5042002) | `0xe49a617643c87017daa0ed62ea28317710e6c912` | [View](https://explorer.testnet.arc.io/address/0xe49a617643c87017daa0ed62ea28317710e6c912) |
 
 (Old FazaBoard at `0x138188a8633b3e7ed86bbb7aa7c7a7faf9e90818` — deprecated, note-board product replaced.)
 
