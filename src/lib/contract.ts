@@ -199,7 +199,6 @@ export const FAZABOND_ABI = [
       { name: "amount", type: "uint256", indexed: false },
     ],
   },
-  // USDC constant
   {
     name: "USDC",
     type: "function",
@@ -211,6 +210,6 @@ export const FAZABOND_ABI = [
 
 export type FazabondAddress = `0x${string}`;
 
-/** Read from env — set after deploying FazaBond. */
-export const FAZABOND_ADDRESS = (process.env
-  .NEXT_PUBLIC_FAZABOND_ADDRESS ?? "") as FazabondAddress;
+/** Testnet default. Override with NEXT_PUBLIC_FAZABOND_ADDRESS after mainnet deploy. */
+export const FAZABOND_ADDRESS = (process.env.NEXT_PUBLIC_FAZABOND_ADDRESS ||
+  "0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221") as FazabondAddress;

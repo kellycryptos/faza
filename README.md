@@ -8,8 +8,8 @@ It is not a DEX, not a brokerage, and not a content paywall.
 
 | | |
 |---|---|
+| App | [faza-v1.vercel.app](https://faza-v1.vercel.app/) |
 | Status | Live on Arc Testnet |
-| App | Public Vercel URL pending. Run locally or use the Arc Studio preview until mainnet deploy. |
 | Repo | [github.com/kellycryptos/faza](https://github.com/kellycryptos/faza) |
 | Built by | [@kellycryptos](https://github.com/kellycryptos) |
 | Network | Arc Testnet `5042002` now. Arc Mainnet `5042` before the grant deadline. |
@@ -63,9 +63,11 @@ USDC is gas on Arc. Settlement is cheap enough that a $0.10 bond is usable. Both
 
 ## Judge path
 
+Open [faza-v1.vercel.app](https://faza-v1.vercel.app/). Switch the wallet to Arc Testnet.
+
 **Bond (do this first)**
 
-1. Fund two wallets with test USDC from [faucet.circle.com](https://faucet.circle.com) or Arc Studio.
+1. Fund two wallets with test USDC from [faucet.circle.com](https://faucet.circle.com).
 2. Wallet A: Bonds → New bond → title, $0.10, deadline ~30 minutes out. Approve + create.
 3. Wallet B: open the bond → Join. Approve + join.
 4. Both wallets: Check in before the deadline.
@@ -98,6 +100,7 @@ Faza is an onchain ticket for two-party deals on Arc. For tokens on Arc it settl
 - wagmi v2, viem, ConnectKit
 - Foundry + OpenZeppelin 5
 - Arc, USDC as gas
+- Hosted on Vercel
 
 ```
 contracts/FazaBond.sol      create, join, checkIn, settle, cancel, claim
@@ -130,6 +133,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_FAZABOND_ADDRESS` | No | defaults to the testnet bond |
 | `NEXT_PUBLIC_FAZAOTC_ADDRESS` | No | defaults to the testnet OTC contract |
 
+Vercel production should set all three. WalletConnect is required for the connect modal. The two contract vars should match the table above until mainnet.
+
 ---
 
 ## Mainnet
@@ -139,8 +144,8 @@ Arc Studio deploys to testnet only. The grant needs Arc Mainnet.
 1. Read `MAINNET.md`.
 2. Deploy `FazaBond` and `FazaOTC` to chain id `5042`.
 3. Flip `activeChain` to `arcMainnet` in `src/lib/arc.ts`.
-4. Set both contract env vars.
-5. Host the app on Vercel and paste the public URL at the top of this README.
+4. Set both contract env vars on Vercel.
+5. Redeploy [faza-v1.vercel.app](https://faza-v1.vercel.app/).
 6. Repeat the two-wallet bond loop with real USDC and keep the explorer links.
 
 Review the contracts before mainnet. Real USDC moves.
