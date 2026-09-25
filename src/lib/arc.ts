@@ -1,8 +1,8 @@
 /**
- * Arc chain configuration for Faza (show-up bond).
+ * Arc chain configuration for Faza.
  *
- * ACTIVE CHAIN: Arc Testnet (chain ID 5042002).
- * Arc Mainnet (chain ID 5042) is the final destination — see MAINNET.md.
+ * Supports both Arc Testnet (5042002) and Arc Mainnet (5042).
+ * The active chain adapts to the wallet's connected network.
  *
  * USDC on Arc is a fixed predeploy at the same address on every Arc network.
  * Source: https://docs.arc.io/arc/references/contract-addresses
@@ -38,12 +38,14 @@ export const arcMainnet = defineChain({
   },
 });
 
-/** Active chain — swap to arcMainnet after the manual deploy described in MAINNET.md. */
+export const SUPPORTED_CHAINS = [arcTestnet, arcMainnet] as const;
+
+/** The default chain for new connections. Swap to arcMainnet after manual deploy per MAINNET.md. */
 export const activeChain = arcTestnet;
 
 /** USDC predeploy on all Arc networks (mainnet and testnet). 6 decimals (ERC-20 view). */
 export const ARC_USDC_ADDRESS =
-  "0x3600000000000000000000000000000000000000" as const; // arc-studio-allow-onchain-literal
+  "0x3600000000000000000000000000000000000000" as `0x${string}`; // arc-studio-allow-onchain-literal
 
 export const USDC_DECIMALS = 6;
 
@@ -52,11 +54,37 @@ export const MIN_STAKE_USDC = 10_000n;
 /** $100.00 in 6-decimal USDC */
 export const MAX_STAKE_USDC = 100_000_000n;
 
-export function explorerTx(hash: `0x${string}`): string {
-  return `${activeChain.blockExplorers.default.url}/tx/${hash}`;
+/** Returns the Arc chain object for a given chainId, or undefined if unsupported. */
+export function getChain(chainId?: number) {
+  if (chainId === arcMainnet.id) return arcMainnet;
+  if (chainId === arcTestnet.id) return arcTestnet;
+  return undefined;
 }
+
+/** Returns true if the chainId is a supported Arc network. */
+export function isSupportedChain(chainId?: number): boolean {
+  return chainId === arcMainnet.id || chainId === arcTestnet.id;
+}
+
+/** Explorer tx URL for the given chain (falls back to activeChain). */
+export function getExplorerTx(hash: string, chainId?: number): string {
+  const chain = getChain(chainId) ?? activeChain;
+  return `${chain.blockExplorers.default.url}/tx/${hash}`;
+}
+
+/** Explorer address URL for the given chain (falls back to activeChain). */
+export function getExplorerAddress(addr: string, chainId?: number): string {
+  const chain = getChain(chainId) ?? activeChain;
+  return `${chain.blockExplorers.default.url}/address/${addr}`;
+}
+
+/** @deprecated use getExplorerTx(hash, chainId) */
+export function explorerTx(hash: `0x${string}`): string {
+  return getExplorerTx(hash);
+}
+/** @deprecated use getExplorerAddress(addr, chainId) */
 export function explorerAddress(addr: string): string {
-  return `${activeChain.blockExplorers.default.url}/address/${addr}`;
+  return getExplorerAddress(addr);
 }
 
 /** Parse "$0.10" → 100000n (6-decimal USDC) */
@@ -86,4 +114,17 @@ export function formatDeadline(ts: number): string {
     month: "short", day: "numeric", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
+}
+
+/** Live countdown: returns "2h 14m", "45s", "Ended", etc. */
+export function formatCountdown(deadlineTs: number): string {
+  const secs = deadlineTs - Math.floor(Date.now() / 1000);
+  if (secs <= 0) return "Ended";
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h < 24) return `${h}h ${m}m`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
 }

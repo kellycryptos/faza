@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { erc20Abi, keccak256, toBytes } from "viem";
-import { activeChain, ARC_USDC_ADDRESS, parseUsdcAmount, explorerTx } from "@/lib/arc";
-import { FAZAOTC_ABI, FAZAOTC_ADDRESS } from "@/lib/otc-contract";
+import {
+  activeChain, ARC_USDC_ADDRESS, parseUsdcAmount, getExplorerTx, isSupportedChain,
+} from "@/lib/arc";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
 interface Props { onCreated: () => void; }
 
+type Step = "idle" | "approving" | "approve-wait" | "submitting" | "tx-wait" | "done" | "error";
+
 export function OtcCreateForm({ onCreated }: Props) {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
-  const wrongChain = !!address && chainId !== activeChain.id;
+  const onArc = isSupportedChain(chainId);
+  const contractAddr = getFazaOtcAddress(chainId) ?? FAZAOTC_ADDRESS;
+  const targetChain = onArc ? chainId! : activeChain.id;
 
   const [title, setTitle] = useState("");
   const [termSheet, setTermSheet] = useState("");
@@ -22,63 +28,80 @@ export function OtcCreateForm({ onCreated }: Props) {
   const [priceUsdc, setPriceUsdc] = useState("");
   const [stakeUsdc, setStakeUsdc] = useState("0.10");
   const [deadlineHours, setDeadlineHours] = useState("24");
-  const [step, setStep] = useState<"idle" | "approving" | "approve-wait" | "submitting" | "tx-wait" | "done" | "error">("idle");
+  const [step, setStep] = useState<Step>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [lastTx, setLastTx] = useState<`0x${string}` | undefined>();
+  // Capture args at submit time, not at write time
+  const [createArgs, setCreateArgs] = useState<{
+    termsHash: `0x${string}`; asset: `0x${string}`;
+    sizeRaw: bigint; priceRaw: bigint; stakeRaw: bigint; deadlineSecs: bigint;
+  } | null>(null);
 
   const fullTermSheet = `TITLE: ${title}\n\n${termSheet}`;
   const termsHash = keccak256(toBytes(fullTermSheet)) as `0x${string}`;
   const isPvp = assetAddr.startsWith("0x") && assetAddr.length === 42 && assetAddr !== ZERO_ADDR;
   const stakeRaw = parseUsdcAmount(stakeUsdc);
   const priceRaw = parseUsdcAmount(priceUsdc);
-  const sizeRaw = size ? BigInt(Math.round(parseFloat(size) * 1e6)) : 0n; // assume 6-decimal token for display; actual amount passed as-is
-  const deadlineSecs = BigInt(Math.floor(Date.now() / 1000) + parseInt(deadlineHours || "24") * 3600);
+  const sizeRaw = size ? BigInt(Math.round(parseFloat(size) * 1e6)) : 0n;
 
   const { writeContract: approve, data: approveHash } = useWriteContract();
   const { isSuccess: approveOk } = useWaitForTransactionReceipt({ hash: approveHash });
   const { writeContract: write, data: txHash } = useWriteContract();
   const { isSuccess: txOk } = useWaitForTransactionReceipt({ hash: txHash });
 
-  if (approveOk && step === "approve-wait") setStep("submitting");
-  if (step === "submitting" && FAZAOTC_ADDRESS) {
-    setStep("tx-wait");
-    write(
-      {
-        address: FAZAOTC_ADDRESS,
-        abi: FAZAOTC_ABI,
-        functionName: "create",
-        args: [
-          termsHash,
-          (isPvp ? assetAddr : ZERO_ADDR) as `0x${string}`,
-          sizeRaw,
-          priceRaw,
-          stakeRaw,
-          deadlineSecs,
-        ],
-        chainId: activeChain.id,
-      },
-      {
-        onSuccess: (h) => setLastTx(h),
-        onError: (e) => {
-          const msg = e?.message?.toLowerCase() ?? "";
-          if (!msg.includes("user rejected") && !msg.includes("denied")) setErrorMsg("Create failed: " + e.message.slice(0, 80));
-          setStep("error");
+  useEffect(() => {
+    if (approveOk && step === "approve-wait") setStep("submitting");
+  }, [approveOk, step]);
+
+  useEffect(() => {
+    if (step === "submitting" && contractAddr && createArgs) {
+      setStep("tx-wait");
+      write(
+        {
+          address: contractAddr, abi: FAZAOTC_ABI, functionName: "create",
+          args: [createArgs.termsHash, createArgs.asset, createArgs.sizeRaw, createArgs.priceRaw, createArgs.stakeRaw, createArgs.deadlineSecs],
+          chainId: targetChain,
         },
-      }
-    );
-  }
-  if (txOk && step === "tx-wait") { setStep("done"); setLastTx(txHash); onCreated(); }
+        {
+          onSuccess: (h) => setLastTx(h),
+          onError: (e) => {
+            const msg = e?.message?.toLowerCase() ?? "";
+            if (!msg.includes("user rejected") && !msg.includes("denied")) setErrorMsg("Create failed: " + e.message.slice(0, 80));
+            setStep("error");
+          },
+        }
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  useEffect(() => {
+    if (txOk && step === "tx-wait") {
+      if (txHash) setLastTx(txHash);
+      setStep("done");
+      onCreated();
+    }
+  }, [txOk, step, txHash, onCreated]);
 
   const valid = title.trim() && termSheet.trim() && priceRaw > 0n && stakeRaw >= 10_000n && sizeRaw > 0n;
 
   const handleCreate = () => {
-    if (!address || !FAZAOTC_ADDRESS) return;
-    if (wrongChain) { switchChain({ chainId: activeChain.id }); return; }
+    if (!address || !contractAddr) return;
+    if (!onArc) { switchChain({ chainId: activeChain.id }); return; }
     if (!valid) { setErrorMsg("Fill in all fields."); return; }
     setErrorMsg("");
+    const args = {
+      termsHash,
+      asset: (isPvp ? assetAddr : ZERO_ADDR) as `0x${string}`,
+      sizeRaw,
+      priceRaw,
+      stakeRaw,
+      deadlineSecs: BigInt(Math.floor(Date.now() / 1000) + parseInt(deadlineHours || "24") * 3600),
+    };
+    setCreateArgs(args);
     setStep("approving");
     approve(
-      { address: ARC_USDC_ADDRESS, abi: erc20Abi, functionName: "approve", args: [FAZAOTC_ADDRESS, stakeRaw], chainId: activeChain.id },
+      { address: ARC_USDC_ADDRESS, abi: erc20Abi, functionName: "approve", args: [contractAddr, args.stakeRaw], chainId: targetChain },
       {
         onSuccess: () => setStep("approve-wait"),
         onError: (e) => {
@@ -94,7 +117,7 @@ export function OtcCreateForm({ onCreated }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-      <p style={labelStyle}>New OTC Deal</p>
+      <p style={sectionLabel}>New OTC Deal</p>
 
       <Field label="Deal title (not stored onchain)">
         <input style={inputStyle} placeholder="e.g. 500 USDC vs. 100 WBTC" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -109,13 +132,12 @@ export function OtcCreateForm({ onCreated }: Props) {
         />
       </Field>
 
-      {/* Terms hash preview */}
       {termSheet && (
         <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.6rem 0.9rem" }}>
-          <p style={{ ...labelStyle, marginBottom: 3 }}>Terms hash (keccak256)</p>
+          <p style={{ ...sectionLabel, marginBottom: 3, fontSize: "0.68rem" }}>Terms hash (keccak256)</p>
           <p className="mono" style={{ fontSize: "0.72rem", color: "var(--muted)", wordBreak: "break-all" }}>{termsHash}</p>
           <p style={{ fontSize: "0.7rem", color: "var(--subtle)", marginTop: 4 }}>
-            Both parties verify this hash matches before signing. It is stored onchain.
+            Both parties verify this hash matches before signing.
           </p>
         </div>
       )}
@@ -138,21 +160,18 @@ export function OtcCreateForm({ onCreated }: Props) {
         </Field>
       </div>
 
-      {/* Settlement mode label */}
-      <div
-        style={{
-          background: isPvp ? "var(--accent-dim)" : "rgba(245,166,35,0.08)",
-          border: `1px solid ${isPvp ? "rgba(46,230,166,0.25)" : "rgba(245,166,35,0.3)"}`,
-          borderRadius: 8, padding: "0.6rem 0.9rem",
-        }}
-      >
+      <div style={{
+        background: isPvp ? "var(--accent-dim)" : "rgba(245,166,35,0.08)",
+        border: `1px solid ${isPvp ? "rgba(46,230,166,0.25)" : "rgba(245,166,35,0.3)"}`,
+        borderRadius: 8, padding: "0.6rem 0.9rem",
+      }}>
         <p style={{ fontSize: "0.78rem", fontWeight: 700, color: isPvp ? "var(--accent)" : "var(--amber)", margin: 0 }}>
           {isPvp ? "PvP settle on Arc." : "Bond only. The share moves offchain. Faza enforces the stake."}
         </p>
         <p style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 3 }}>
           {isPvp
-            ? "Seller must approve FazaOTC to transfer the token before settle() runs. Tokens move atomically against USDC."
-            : "No token transfer onchain. Both parties call confirmDone() after the offchain transfer. Stakes refund or forfeit."}
+            ? "Seller must approve FazaOTC to transfer the token before settle() runs."
+            : "No token transfer onchain. Both parties call confirmDone() after the offchain transfer."}
         </p>
       </div>
 
@@ -160,14 +179,12 @@ export function OtcCreateForm({ onCreated }: Props) {
 
       {address && (
         <button
-          onClick={handleCreate}
-          disabled={isBusy || !valid}
+          onClick={handleCreate} disabled={isBusy || !valid}
           style={{
             background: isBusy || !valid ? "var(--surface-muted)" : "var(--accent)",
             color: isBusy || !valid ? "var(--subtle)" : "#050B14",
-            border: "none", borderRadius: "var(--radius-btn)",
-            padding: "0.7rem 1.5rem", fontSize: "0.9rem",
-            fontFamily: "'Inter', sans-serif", fontWeight: 700,
+            border: "none", borderRadius: 10, padding: "0.7rem 1.5rem",
+            fontSize: "0.9rem", fontFamily: "'Inter', sans-serif", fontWeight: 700,
             cursor: isBusy || !valid ? "not-allowed" : "pointer",
           }}
         >
@@ -176,7 +193,8 @@ export function OtcCreateForm({ onCreated }: Props) {
       )}
 
       {lastTx && (
-        <a href={explorerTx(lastTx)} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.78rem", color: "var(--accent)", fontFamily: "monospace" }}>
+        <a href={getExplorerTx(lastTx, targetChain)} target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: "0.78rem", color: "var(--accent)", fontFamily: "monospace" }}>
           {lastTx.slice(0, 22)}… (explorer)
         </a>
       )}
@@ -201,7 +219,7 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "'Inter', sans-serif", outline: "none", width: "100%",
 };
 
-const labelStyle: React.CSSProperties = {
+const sectionLabel: React.CSSProperties = {
   fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em",
   textTransform: "uppercase", color: "var(--subtle)", margin: 0,
 };

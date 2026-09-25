@@ -3,8 +3,9 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { useReadContract } from "wagmi";
-import { activeChain, formatUsdc, formatDeadline, shortAddr, explorerAddress } from "@/lib/arc";
-import { FAZABOND_ABI, FAZABOND_ADDRESS } from "@/lib/contract";
+import { formatUsdc, formatDeadline, formatCountdown, shortAddr, getExplorerAddress } from "@/lib/arc";
+import { useAccount } from "wagmi";
+import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS } from "@/lib/contract";
 import { BondActions } from "@/components/BondActions";
 import type { BondSummary } from "@/components/BondCard";
 
@@ -12,27 +13,41 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params);
   const bondId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [, setTick] = useState(0);
-
-  // Live countdown
-  useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const [countdown, setCountdown] = useState("");
+  const [copied, setCopied] = useState(false);
+  const { chainId } = useAccount();
+  const contractAddr = getFazaBondAddress(chainId) ?? FAZABOND_ADDRESS;
 
   const { data: raw, refetch } = useReadContract({
-    address: FAZABOND_ADDRESS || undefined,
+    address: contractAddr || undefined,
     abi: FAZABOND_ABI,
     functionName: "getBond",
     args: [BigInt(isNaN(bondId) ? 0 : bondId)],
-    chainId: activeChain.id,
-    query: { enabled: !!FAZABOND_ADDRESS && !isNaN(bondId), refetchInterval: 6000 },
+    chainId: chainId ?? undefined,
+    query: { enabled: !!contractAddr && !isNaN(bondId), refetchInterval: 6000 },
   });
 
   useEffect(() => { if (refreshKey > 0) refetch(); }, [refreshKey, refetch]);
 
+  // Live countdown
+  useEffect(() => {
+    if (!raw) return;
+    const b = raw as { deadline: bigint; settled: boolean };
+    const update = () => setCountdown(b.settled ? "" : formatCountdown(Number(b.deadline)));
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, [raw]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   if (isNaN(bondId)) return <Wrapper><p style={{ color: "var(--subtle)" }}>Invalid bond ID.</p></Wrapper>;
-  if (!FAZABOND_ADDRESS) return <Wrapper><p style={{ color: "var(--subtle)" }}>Contract not deployed yet.</p></Wrapper>;
+  if (!contractAddr) return <Wrapper><p style={{ color: "var(--subtle)" }}>Contract not deployed yet.</p></Wrapper>;
 
   const b = raw as {
     creator: `0x${string}`; joiner: `0x${string}`; stake: bigint;
@@ -90,7 +105,16 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
             {statusLabel.text}
           </span>
         </div>
-        <p style={{ fontSize: "0.78rem", color: "var(--subtle)" }}>Bond #{bondId}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <p style={{ fontSize: "0.78rem", color: "var(--subtle)", margin: 0 }}>Bond #{bondId}</p>
+          <button onClick={handleCopy} style={{
+            background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6,
+            padding: "2px 8px", fontSize: "0.72rem", color: "var(--muted)",
+            cursor: "pointer", fontFamily: "'Inter', sans-serif",
+          }}>
+            {copied ? "Copied!" : "Copy link"}
+          </button>
+        </div>
       </div>
 
       {/* Stake hero */}
@@ -131,8 +155,11 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
             {formatDeadline(Number(b.deadline))}
           </p>
         </div>
-        {!expired && !b.settled && (
-          <Countdown secsLeft={secsLeft} />
+        {!expired && !b.settled && countdown && (
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--subtle)", marginBottom: 2 }}>Time left</p>
+            <span className="tabular" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}>{countdown}</span>
+          </div>
         )}
         {expired && !b.settled && (
           <span
@@ -159,9 +186,10 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
           addr={b.creator}
           checkedIn={b.creatorIn}
           isWaiting={false}
+          chainId={chainId}
         />
         {hasJoiner ? (
-          <PartyCard role="Joiner" addr={b.joiner} checkedIn={b.joinerIn} isWaiting={false} />
+          <PartyCard role="Joiner" addr={b.joiner} checkedIn={b.joinerIn} isWaiting={false} chainId={chainId} />
         ) : (
           <div
             style={{
@@ -192,27 +220,7 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
   );
 }
 
-function Countdown({ secsLeft }: { secsLeft: number }) {
-  const h = Math.floor(secsLeft / 3600);
-  const m = Math.floor((secsLeft % 3600) / 60);
-  const s = secsLeft % 60;
-  const fmt = (n: number) => String(n).padStart(2, "0");
-  return (
-    <div style={{ textAlign: "right" }}>
-      <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--subtle)", marginBottom: 2 }}>
-        Time left
-      </p>
-      <span
-        className="tabular"
-        style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}
-      >
-        {h > 0 ? `${h}h ` : ""}{fmt(m)}m {fmt(s)}s
-      </span>
-    </div>
-  );
-}
-
-function PartyCard({ role, addr, checkedIn }: { role: string; addr: string; checkedIn: boolean; isWaiting: boolean }) {
+function PartyCard({ role, addr, checkedIn, chainId }: { role: string; addr: string; checkedIn: boolean; isWaiting: boolean; chainId?: number }) {
   return (
     <div
       style={{
@@ -225,7 +233,7 @@ function PartyCard({ role, addr, checkedIn }: { role: string; addr: string; chec
         {role}
       </span>
       <a
-        href={explorerAddress(addr)}
+        href={getExplorerAddress(addr, chainId)}
         target="_blank"
         rel="noopener noreferrer"
         className="mono"

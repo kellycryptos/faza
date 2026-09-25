@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { formatUsdc, formatDeadline, shortAddr } from "@/lib/arc";
+import { useState, useEffect } from "react";
+import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
 
 export interface BondSummary {
   id: number;
@@ -61,6 +62,21 @@ function Pill({ label, bg, color }: StatusInfo) {
   );
 }
 
+function LiveCountdown({ deadline, settled }: { deadline: number; settled: boolean }) {
+  const [label, setLabel] = useState(() => settled ? "" : formatCountdown(deadline));
+  useEffect(() => {
+    if (settled) return;
+    const id = setInterval(() => setLabel(formatCountdown(deadline)), 1000);
+    return () => clearInterval(id);
+  }, [deadline, settled]);
+  if (settled || !label || label === "Ended") return null;
+  return (
+    <span className="tabular" style={{ fontSize: "0.78rem", color: "var(--amber)", fontWeight: 600 }}>
+      {label} left
+    </span>
+  );
+}
+
 export function BondCard({ bond }: { bond: BondSummary }) {
   const status = getStatus(bond);
   const hasJoiner = bond.joiner && bond.joiner !== "0x0000000000000000000000000000000000000000";
@@ -116,6 +132,7 @@ export function BondCard({ bond }: { bond: BondSummary }) {
           <Meta label="Deadline">
             <span style={{ color: "var(--ink-2)" }}>{formatDeadline(bond.deadline)}</span>
           </Meta>
+          <LiveCountdown deadline={bond.deadline} settled={bond.settled} />
           <Meta label="Creator">
             <span className="mono" style={{ color: "var(--ink-2)", fontSize: "0.8rem" }}>
               {shortAddr(bond.creator)}

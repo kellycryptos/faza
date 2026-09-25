@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { formatUsdc, formatDeadline, shortAddr } from "@/lib/arc";
+import { useState, useEffect } from "react";
+import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
 import { DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -19,6 +20,21 @@ function dealPill(deal: DealSummary): { label: string; bg: string; fg: string } 
   if (now >= deal.deadline) return { label: "Ready to settle", bg: "rgba(245,166,35,0.12)", fg: "var(--amber)" };
   if (state === "Attested") return { label: "Attested", bg: "var(--accent-dim)", fg: "var(--accent)" };
   return { label: "Live", bg: "rgba(46,230,166,0.08)", fg: "var(--accent)" };
+}
+
+function LiveCountdown({ deadline, settled }: { deadline: number; settled: boolean }) {
+  const [label, setLabel] = useState(() => settled ? "" : formatCountdown(deadline));
+  useEffect(() => {
+    if (settled) return;
+    const id = setInterval(() => setLabel(formatCountdown(deadline)), 1000);
+    return () => clearInterval(id);
+  }, [deadline, settled]);
+  if (settled || !label || label === "Ended") return null;
+  return (
+    <span className="tabular" style={{ fontSize: "0.75rem", color: "var(--amber)", fontWeight: 600 }}>
+      {label} left
+    </span>
+  );
 }
 
 export function DealCard({ deal }: { deal: DealSummary }) {
@@ -85,6 +101,7 @@ export function DealCard({ deal }: { deal: DealSummary }) {
           <Stat label="Price" value={formatUsdc(deal.priceUsdc)} />
           <Stat label="Stake" value={formatUsdc(deal.stake)} />
           <Stat label="Deadline" value={formatDeadline(deal.deadline)} />
+          <LiveCountdown deadline={deal.deadline} settled={deal.settled} />
         </div>
 
         {/* Parties */}

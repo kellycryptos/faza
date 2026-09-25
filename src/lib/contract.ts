@@ -210,6 +210,20 @@ export const FAZABOND_ABI = [
 
 export type FazabondAddress = `0x${string}`;
 
-/** Testnet default. Override with NEXT_PUBLIC_FAZABOND_ADDRESS after mainnet deploy. */
+const TESTNET_FAZABOND = "0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221";
+const MAINNET_FAZABOND = process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS ?? "";
+
+/** Returns the FazaBond contract address for a given chainId. */
+export function getFazaBondAddress(chainId?: number): FazabondAddress | undefined {
+  if (chainId === 5042) {
+    const addr = MAINNET_FAZABOND || process.env.NEXT_PUBLIC_FAZABOND_ADDRESS;
+    return addr ? (addr as FazabondAddress) : undefined;
+  }
+  // testnet (5042002) or no chainId — use env override or testnet default
+  const addr = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS || TESTNET_FAZABOND;
+  return addr as FazabondAddress;
+}
+
+/** Static address for use in non-hook contexts (defaults to testnet). */
 export const FAZABOND_ADDRESS = (process.env.NEXT_PUBLIC_FAZABOND_ADDRESS ||
-  "0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221") as FazabondAddress;
+  TESTNET_FAZABOND) as FazabondAddress;

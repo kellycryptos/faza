@@ -3,8 +3,9 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { useReadContract } from "wagmi";
-import { activeChain, formatUsdc, formatDeadline, shortAddr, explorerAddress } from "@/lib/arc";
-import { FAZAOTC_ABI, FAZAOTC_ADDRESS, DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
+import { formatUsdc, formatDeadline, shortAddr, getExplorerAddress } from "@/lib/arc";
+import { useAccount } from "wagmi";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
 import { DealActions } from "@/components/DealActions";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -13,16 +14,26 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
   const { id } = use(params);
   const dealId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const { chainId } = useAccount();
+  const contractAddr = getFazaOtcAddress(chainId) ?? FAZAOTC_ADDRESS;
 
   const { data: raw, refetch } = useReadContract({
-    address: FAZAOTC_ADDRESS || undefined,
+    address: contractAddr || undefined,
     abi: FAZAOTC_ABI, functionName: "getDeal",
     args: [BigInt(isNaN(dealId) ? 0 : dealId)],
-    chainId: activeChain.id,
-    query: { enabled: !!FAZAOTC_ADDRESS && !isNaN(dealId), refetchInterval: 6000 },
+    chainId: chainId ?? undefined,
+    query: { enabled: !!contractAddr && !isNaN(dealId), refetchInterval: 6000 },
   });
 
   useEffect(() => { if (refreshKey > 0) refetch(); }, [refreshKey, refetch]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   if (isNaN(dealId)) return <Wrap><p style={{ color: "var(--subtle)" }}>Invalid deal ID.</p></Wrap>;
 
@@ -34,7 +45,7 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
     settled: boolean; state: number;
   } | undefined;
 
-  if (!FAZAOTC_ADDRESS) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
+  if (!contractAddr) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
   if (!d || d.seller === ZERO) return <Wrap><p style={{ color: "var(--subtle)" }}>Deal #{dealId} not found.</p></Wrap>;
 
   const deal: DealSummary = {
@@ -81,9 +92,18 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
         </span>
       </div>
 
-      <h1 className="display" style={{ fontSize: "clamp(1.4rem,4vw,1.9rem)", fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.03em", margin: 0 }}>
-        Deal #{dealId}
-      </h1>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <h1 className="display" style={{ fontSize: "clamp(1.4rem,4vw,1.9rem)", fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.03em", margin: 0 }}>
+          Deal #{dealId}
+        </h1>
+        <button onClick={handleCopy} style={{
+          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6,
+          padding: "2px 8px", fontSize: "0.72rem", color: "var(--muted)",
+          cursor: "pointer", fontFamily: "'Inter', sans-serif",
+        }}>
+          {copied ? "Copied!" : "Copy link"}
+        </button>
+      </div>
 
       {/* Terms hash */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.9rem 1.1rem" }}>
@@ -116,9 +136,10 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
           attested={d.sellerAttested}
           done={d.sellerDone}
           pvp={pvp}
+          chainId={chainId}
         />
         {hasBuyer
-          ? <PartyCard role="Buyer" addr={d.buyer} attested={d.buyerAttested} done={d.buyerDone} pvp={pvp} />
+          ? <PartyCard role="Buyer" addr={d.buyer} attested={d.buyerAttested} done={d.buyerDone} pvp={pvp} chainId={chainId} />
           : (
             <div style={{ background: "var(--surface)", border: "1px dashed var(--border)", borderRadius: 12, padding: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <p style={{ color: "var(--subtle)", fontSize: "0.85rem", margin: 0, textAlign: "center" }}>Waiting for buyer</p>
@@ -153,11 +174,11 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
   );
 }
 
-function PartyCard({ role, addr, attested, done, pvp }: { role: string; addr: string; attested: boolean; done: boolean; pvp: boolean }) {
+function PartyCard({ role, addr, attested, done, pvp, chainId }: { role: string; addr: string; attested: boolean; done: boolean; pvp: boolean; chainId?: number }) {
   return (
     <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "1rem", display: "flex", flexDirection: "column", gap: 6 }}>
       <p style={cap}>{role}</p>
-      <a className="mono" href={explorerAddress(addr)} target="_blank" rel="noopener noreferrer"
+      <a className="mono" href={getExplorerAddress(addr, chainId)} target="_blank" rel="noopener noreferrer"
         style={{ fontSize: "0.78rem", color: "var(--muted)", textDecoration: "none", wordBreak: "break-all" }}>
         {shortAddr(addr)}
       </a>
