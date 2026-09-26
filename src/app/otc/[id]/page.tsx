@@ -16,13 +16,14 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const { chainId } = useAccount();
-  const contractAddr = getFazaOtcAddress(chainId) ?? FAZAOTC_ADDRESS;
+  const effectiveChainId = chainId === 5042002 ? 5042002 : 5042;
+  const contractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
 
   const { data: raw, refetch } = useReadContract({
     address: contractAddr || undefined,
     abi: FAZAOTC_ABI, functionName: "getDeal",
     args: [BigInt(isNaN(dealId) ? 0 : dealId)],
-    chainId: chainId ?? undefined,
+    chainId: effectiveChainId,
     query: { enabled: !!contractAddr && !isNaN(dealId), refetchInterval: 6000 },
   });
 

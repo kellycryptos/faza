@@ -17,11 +17,17 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
   const supported = isSupportedChain(chainId);
   const current = getChain(chainId);
   const isMainnet = chainId === arcMainnet.id;
-  const dotColor = !chainId ? "var(--subtle)" : supported ? "var(--accent)" : "var(--amber)";
+  const isTestnet = chainId === arcTestnet.id;
+
+  const dotColor = !chainId ? "var(--accent)"
+    : isMainnet ? "var(--accent)"
+    : isTestnet ? "var(--amber)"
+    : "#FF494A";
+
   const label = !chainId ? "ARC MAINNET"
-    : !supported ? "Wrong network"
     : isMainnet ? "ARC MAINNET"
-    : "ARC TESTNET";
+    : isTestnet ? "ARC TESTNET"
+    : "WRONG NETWORK";
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -44,12 +50,12 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
       >
         <span style={{
           width: 6, height: 6, borderRadius: "50%", background: dotColor,
-          flexShrink: 0, boxShadow: supported ? "0 0 6px var(--accent-glow)" : "none",
+          flexShrink: 0, boxShadow: isMainnet || !chainId ? "0 0 6px var(--accent-glow)" : "none",
         }} />
         <span style={{
           fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: !chainId ? "var(--subtle)" : supported ? "var(--accent)" : "var(--amber)",
+          color: !chainId || isMainnet ? "var(--accent)" : isTestnet ? "var(--amber)" : "#FF494A",
           whiteSpace: "nowrap",
         }}>
           {label}
@@ -61,9 +67,10 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
         <div style={{
           position: "absolute", top: "calc(100% + 8px)", right: 0,
           background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: 12, overflow: "hidden", minWidth: 180, zIndex: 100,
+          borderRadius: 12, overflow: "hidden", minWidth: 200, zIndex: 100,
           boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}>
+          {/* Mainnet first */}
           {[arcMainnet, arcTestnet].map((chain) => {
             const active = chainId === chain.id;
             const isMain = chain.id === arcMainnet.id;
@@ -73,31 +80,37 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
                 onClick={() => { switchChain({ chainId: chain.id }); setOpen(false); }}
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
-                  width: "100%", padding: "0.7rem 1rem",
+                  width: "100%", padding: "0.75rem 1rem",
                   background: active ? "rgba(46,230,166,0.07)" : "transparent",
                   border: "none", cursor: "pointer",
                   borderBottom: isMain ? "1px solid var(--border)" : "none",
+                  textAlign: "left",
                 }}
               >
                 <span style={{
                   width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-                  background: active ? "var(--accent)" : "var(--border-strong)",
+                  background: active
+                    ? (isMain ? "var(--accent)" : "var(--amber)")
+                    : "var(--border-strong)",
                 }} />
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
                     {chain.name}
-                    {isMain && (
-                      <span style={{ fontSize: "0.6rem", background: "var(--accent-dim)", color: "var(--accent)", padding: "1px 5px", borderRadius: 4, fontWeight: 700 }}>
-                        PRIMARY
-                      </span>
-                    )}
+                    <span style={{
+                      fontSize: "0.6rem",
+                      background: isMain ? "var(--accent-dim)" : "rgba(245,166,35,0.12)",
+                      color: isMain ? "var(--accent)" : "var(--amber)",
+                      padding: "1px 5px", borderRadius: 4, fontWeight: 700,
+                    }}>
+                      {isMain ? "PRIMARY" : "SANDBOX"}
+                    </span>
                   </div>
                   <div style={{ fontSize: "0.68rem", color: "var(--subtle)" }}>
-                    {isMain ? "Arc Mainnet · 5042" : "Sandbox / Testing · 5042002"}
+                    {isMain ? "Arc Mainnet · 5042 (Live)" : "Arc Testnet · 5042002"}
                   </div>
                 </div>
                 {active && (
-                  <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: "var(--accent)", fontWeight: 700 }}>
+                  <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: isMain ? "var(--accent)" : "var(--amber)", fontWeight: 700 }}>
                     Active
                   </span>
                 )}
@@ -106,7 +119,7 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
           })}
 
           {!supported && chainId && (
-            <div style={{ padding: "0.6rem 1rem", borderTop: "1px solid var(--border)" }}>
+            <div style={{ padding: "0.6rem 1rem", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 6 }}>
               <button
                 onClick={() => { switchChain({ chainId: arcMainnet.id }); setOpen(false); }}
                 style={{
@@ -115,7 +128,17 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
                   fontSize: "0.8rem", fontWeight: 700, cursor: "pointer",
                 }}
               >
-                Switch to Arc Mainnet
+                Switch to Arc Mainnet (Primary)
+              </button>
+              <button
+                onClick={() => { switchChain({ chainId: arcTestnet.id }); setOpen(false); }}
+                style={{
+                  width: "100%", background: "transparent", color: "var(--muted)",
+                  border: "1px solid var(--border)", borderRadius: 8, padding: "0.35rem",
+                  fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Switch to Arc Testnet
               </button>
             </div>
           )}

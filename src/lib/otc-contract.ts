@@ -3,13 +3,14 @@ import { type Address } from "viem";
 const TESTNET_FAZAOTC = "0xe49a617643c87017daa0ed62ea28317710e6c912";
 const MAINNET_FAZAOTC = process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS || "0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2";
 
-/** Returns the FazaOTC contract address for a given chainId. */
+/** Returns the FazaOTC contract address for a given chainId. Defaults to Arc Mainnet (5042). */
 export function getFazaOtcAddress(chainId?: number): Address | undefined {
-  if (chainId === 5042) {
-    const addr = MAINNET_FAZAOTC || process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS;
-    return addr ? (addr as Address) : undefined;
+  if (chainId === 5042002) {
+    const addr = process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS || TESTNET_FAZAOTC;
+    return addr as Address;
   }
-  const addr = process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS || TESTNET_FAZAOTC;
+  // Arc Mainnet (5042) or default
+  const addr = process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS || MAINNET_FAZAOTC;
   return addr as Address;
 }
 

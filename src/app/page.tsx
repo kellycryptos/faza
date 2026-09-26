@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useReadContract, useAccount } from "wagmi";
+import { useReadContract, useAccount, useSwitchChain } from "wagmi";
 import { CreateForm } from "@/components/CreateForm";
 import { BondCard } from "@/components/BondCard";
 import { OtcCreateForm } from "@/components/OtcCreateForm";
@@ -9,7 +9,7 @@ import { DealCard } from "@/components/DealCard";
 import { useBonds } from "@/hooks/useBonds";
 import { useDeals } from "@/hooks/useDeals";
 import {
-  getChain, getExplorerAddress, isSupportedChain, arcMainnet,
+  getChain, getExplorerAddress, isSupportedChain, arcMainnet, arcTestnet,
 } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
@@ -70,9 +70,14 @@ function FeedSection({
 
 export default function HomePage() {
   const { address, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const onArc = isSupportedChain(chainId);
-  const chain = getChain(chainId);
+  const isTestnet = chainId === arcTestnet.id;
   const isMainnet = chainId === arcMainnet.id;
+
+  // Primary network is Arc Mainnet (5042). If user explicitly connects on Testnet (5042002), adapt.
+  const effectiveChainId = chainId === arcTestnet.id ? arcTestnet.id : arcMainnet.id;
+  const chain = getChain(effectiveChainId);
 
   const [tab, setTab] = useState<Tab>("bond");
   const [composing, setComposing] = useState(false);
@@ -82,24 +87,24 @@ export default function HomePage() {
   const [bondSeed, setBondSeed] = useState(0);
   const [dealSeed, setDealSeed] = useState(0);
 
-  const bondContractAddr = getFazaBondAddress(chainId) ?? FAZABOND_ADDRESS;
-  const otcContractAddr = getFazaOtcAddress(chainId) ?? FAZAOTC_ADDRESS;
+  const bondContractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
+  const otcContractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
 
   const { data: bondCountRaw, refetch: refetchBondCount } = useReadContract({
     address: bondContractAddr || undefined, abi: FAZABOND_ABI,
-    functionName: "bondCount", chainId: chainId ?? undefined,
+    functionName: "bondCount", chainId: effectiveChainId,
     query: { enabled: !!bondContractAddr, refetchInterval: 8000 },
   });
   const { data: dealCountRaw, refetch: refetchDealCount } = useReadContract({
     address: otcContractAddr || undefined, abi: FAZAOTC_ABI,
-    functionName: "dealCount", chainId: chainId ?? undefined,
+    functionName: "dealCount", chainId: effectiveChainId,
     query: { enabled: !!otcContractAddr, refetchInterval: 8000 },
   });
 
   const bondCount = Number(bondCountRaw ?? 0n) + (bondSeed > 0 ? 0 : 0);
   const dealCount = Number(dealCountRaw ?? 0n) + (dealSeed > 0 ? 0 : 0);
-  const { bonds, isLoading: bondsLoading, refetch: refetchBonds } = useBonds(bondCount, chainId);
-  const { deals, isLoading: dealsLoading, refetch: refetchDeals } = useDeals(dealCount, chainId);
+  const { bonds, isLoading: bondsLoading, refetch: refetchBonds } = useBonds(bondCount, effectiveChainId);
+  const { deals, isLoading: dealsLoading, refetch: refetchDeals } = useDeals(dealCount, effectiveChainId);
 
   const handleBondCreated = () => { setComposing(false); refetchBondCount(); refetchBonds(); setBondSeed(s => s + 1); };
   const handleDealCreated = () => { setComposing(false); refetchDealCount(); refetchDeals(); setDealSeed(s => s + 1); };
@@ -135,11 +140,9 @@ export default function HomePage() {
     return list;
   }, [deals, search, dealFilter, address, now]);
 
-  const explorerBond = bondContractAddr ? getExplorerAddress(bondContractAddr, chainId) : null;
-  const explorerOtc = otcContractAddr ? getExplorerAddress(otcContractAddr, chainId) : null;
-  const chainLabel = chain ? chain.name : "Arc";
-  const mainnetBondMissing = isMainnet && !getFazaBondAddress(5042);
-  const mainnetOtcMissing = isMainnet && !getFazaOtcAddress(5042);
+  const explorerBond = bondContractAddr ? getExplorerAddress(bondContractAddr, effectiveChainId) : null;
+  const explorerOtc = otcContractAddr ? getExplorerAddress(otcContractAddr, effectiveChainId) : null;
+  const chainLabel = isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet (Live)";
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
@@ -149,25 +152,90 @@ export default function HomePage() {
         <JudgeGuide />
       </div>
 
-      {/* Mainnet deploy banner */}
-      {isMainnet && (mainnetBondMissing || mainnetOtcMissing) && (
+      {/* Network Switch Prompt if wallet connected to an unsupported chain */}
+      {address && !onArc && (
         <div style={{
-          background: "rgba(245,166,35,0.08)", border: "1px solid rgba(245,166,35,0.3)",
-          borderRadius: 10, padding: "0.85rem 1.1rem", marginTop: "5rem", marginBottom: "1rem",
+          background: "rgba(255, 73, 74, 0.1)",
+          border: "1px solid rgba(255, 73, 74, 0.35)",
+          borderRadius: "var(--radius-card)",
+          padding: "0.85rem 1.25rem",
+          marginBottom: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.75rem",
         }}>
-          <p style={{ fontSize: "0.85rem", color: "var(--amber)", fontWeight: 600, margin: 0 }}>
-            Arc Mainnet — contracts not yet deployed.
-          </p>
-          <p style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: 4, marginBottom: 0 }}>
-            Follow <code style={{ background: "var(--surface-muted)", padding: "1px 5px", borderRadius: 4 }}>MAINNET.md</code> to deploy FazaBond and FazaOTC to chain ID 5042, then set <code style={{ background: "var(--surface-muted)", padding: "1px 5px", borderRadius: 4 }}>NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS</code> and <code style={{ background: "var(--surface-muted)", padding: "1px 5px", borderRadius: 4 }}>NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS</code> in Vercel.
-          </p>
+          <div>
+            <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--ink)" }}>
+              ⚠️ Unsupported network connected
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
+              Faza is live on Arc Mainnet. Switch your wallet to mainnet (primary) or testnet (sandbox).
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              onClick={() => switchChain({ chainId: arcMainnet.id })}
+              style={{
+                background: "var(--accent)", color: "#050B14", border: "none",
+                borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
+                fontSize: "0.78rem", fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              Switch to Arc Mainnet (Primary)
+            </button>
+            <button
+              onClick={() => switchChain({ chainId: arcTestnet.id })}
+              style={{
+                background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)",
+                borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
+                fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Switch to Arc Testnet
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Testnet banner with 1-click switch back to Mainnet */}
+      {address && isTestnet && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.08)",
+          border: "1px solid rgba(245, 166, 35, 0.25)",
+          borderRadius: "var(--radius-card)",
+          padding: "0.65rem 1.1rem",
+          marginBottom: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} />
+            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--ink)" }}>
+              Connected to <strong>Arc Testnet</strong> (Sandbox Mode)
+            </span>
+          </div>
+          <button
+            onClick={() => switchChain({ chainId: arcMainnet.id })}
+            style={{
+              background: "var(--accent)", color: "#050B14", border: "none",
+              borderRadius: "var(--radius-btn)", padding: "0.3rem 0.8rem",
+              fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Switch to Arc Mainnet (Live) ↗
+          </button>
         </div>
       )}
 
       {/* Hero */}
       <div style={{
         position: "relative", textAlign: "center",
-        padding: isMainnet && (mainnetBondMissing || mainnetOtcMissing) ? "2.5rem 1rem 3rem" : "4rem 1rem 3rem",
+        padding: "4rem 1rem 3rem",
         overflow: "hidden",
       }}>
         <div style={{

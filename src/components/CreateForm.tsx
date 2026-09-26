@@ -16,7 +16,7 @@ import {
   getExplorerTx,
   isSupportedChain,
 } from "@/lib/arc";
-import { FAZABOND_ABI, FAZABOND_ADDRESS } from "@/lib/contract";
+import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 
 interface Props {
   onCreated?: () => void;
@@ -39,6 +39,7 @@ export function CreateForm({ onCreated }: Props) {
 
   const onArc = isSupportedChain(chainId);
   const targetChain = onArc ? chainId! : activeChain.id;
+  const contractAddr = getFazaBondAddress(targetChain) ?? FAZABOND_ADDRESS;
 
   const { writeContract: approve, data: approveHash } = useWriteContract();
   const { isSuccess: approveOk } = useWaitForTransactionReceipt({ hash: approveHash });
@@ -54,11 +55,11 @@ export function CreateForm({ onCreated }: Props) {
   }, [approveOk, step]);
 
   useEffect(() => {
-    if (step === "creating" && FAZABOND_ADDRESS && stakeRawForCreate > 0n) {
+    if (step === "creating" && contractAddr && stakeRawForCreate > 0n) {
       setStep("create-wait");
       create(
         {
-          address: FAZABOND_ADDRESS,
+          address: contractAddr,
           abi: FAZABOND_ABI,
           functionName: "create",
           args: [title.trim(), stakeRawForCreate, deadlineForCreate],
@@ -93,7 +94,7 @@ export function CreateForm({ onCreated }: Props) {
     e.preventDefault();
     if (!address) return;
     if (!onArc) { switchChain({ chainId: activeChain.id }); return; }
-    if (!FAZABOND_ADDRESS) { setError("Contract not yet deployed."); return; }
+    if (!contractAddr) { setError("Contract not yet deployed."); return; }
 
     const stakeRaw = parseUsdcAmount(stake);
     if (stakeRaw < 10_000n || stakeRaw > 100_000_000n) {
@@ -117,7 +118,7 @@ export function CreateForm({ onCreated }: Props) {
         address: ARC_USDC_ADDRESS,
         abi: erc20Abi,
         functionName: "approve",
-        args: [FAZABOND_ADDRESS, stakeRaw],
+        args: [contractAddr, stakeRaw],
         chainId: targetChain,
       },
       {

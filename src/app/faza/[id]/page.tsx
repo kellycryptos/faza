@@ -16,14 +16,15 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
   const [countdown, setCountdown] = useState("");
   const [copied, setCopied] = useState(false);
   const { chainId } = useAccount();
-  const contractAddr = getFazaBondAddress(chainId) ?? FAZABOND_ADDRESS;
+  const effectiveChainId = chainId === 5042002 ? 5042002 : 5042;
+  const contractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
 
   const { data: raw, refetch } = useReadContract({
     address: contractAddr || undefined,
     abi: FAZABOND_ABI,
     functionName: "getBond",
     args: [BigInt(isNaN(bondId) ? 0 : bondId)],
-    chainId: chainId ?? undefined,
+    chainId: effectiveChainId,
     query: { enabled: !!contractAddr && !isNaN(bondId), refetchInterval: 6000 },
   });
 

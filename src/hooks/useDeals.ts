@@ -4,7 +4,8 @@ import { useReadContracts } from "wagmi";
 import { getFazaOtcAddress, FAZAOTC_ABI, type DealSummary } from "@/lib/otc-contract";
 
 export function useDeals(count: number, chainId?: number) {
-  const contractAddr = getFazaOtcAddress(chainId);
+  const targetChainId = chainId === 5042002 ? 5042002 : 5042;
+  const contractAddr = getFazaOtcAddress(targetChainId);
   const ids = Array.from({ length: count }, (_, i) => i);
 
   const { data, isLoading, refetch } = useReadContracts({
@@ -13,7 +14,7 @@ export function useDeals(count: number, chainId?: number) {
       abi: FAZAOTC_ABI,
       functionName: "getDeal" as const,
       args: [BigInt(i)] as [bigint],
-      chainId,
+      chainId: targetChainId,
     })),
     query: { enabled: count > 0 && !!contractAddr },
   });

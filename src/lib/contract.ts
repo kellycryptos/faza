@@ -213,14 +213,14 @@ export type FazabondAddress = `0x${string}`;
 const TESTNET_FAZABOND = "0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221";
 const MAINNET_FAZABOND = process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS || "0x3e925db0bdcb64991f21a8c32b778c3265b349df";
 
-/** Returns the FazaBond contract address for a given chainId. */
+/** Returns the FazaBond contract address for a given chainId. Defaults to Arc Mainnet (5042). */
 export function getFazaBondAddress(chainId?: number): FazabondAddress | undefined {
-  if (chainId === 5042) {
-    const addr = MAINNET_FAZABOND || process.env.NEXT_PUBLIC_FAZABOND_ADDRESS;
-    return addr ? (addr as FazabondAddress) : undefined;
+  if (chainId === 5042002) {
+    const addr = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS || TESTNET_FAZABOND;
+    return addr as FazabondAddress;
   }
-  // testnet (5042002) or default
-  const addr = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS || TESTNET_FAZABOND;
+  // Arc Mainnet (5042) or default
+  const addr = process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS || MAINNET_FAZABOND;
   return addr as FazabondAddress;
 }
 

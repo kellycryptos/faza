@@ -11,7 +11,8 @@ interface UseBondsResult {
 }
 
 export function useBonds(count: number, chainId?: number): UseBondsResult {
-  const contractAddr = getFazaBondAddress(chainId);
+  const targetChainId = chainId === 5042002 ? 5042002 : 5042;
+  const contractAddr = getFazaBondAddress(targetChainId);
 
   const contracts = contractAddr
     ? Array.from({ length: count }, (_, i) => ({
@@ -19,7 +20,7 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
         abi: FAZABOND_ABI,
         functionName: "getBond" as const,
         args: [BigInt(i)] as const,
-        chainId,
+        chainId: targetChainId,
       }))
     : [];
 
