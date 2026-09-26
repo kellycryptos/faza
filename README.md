@@ -107,7 +107,7 @@ Faza is an onchain ticket for two-party deals on Arc. For tokens on Arc it settl
 ## Stack
 
 - Next.js 15 App Router, TypeScript
-- wagmi v2, viem, ConnectKit
+- wagmi v2, viem, RainbowKit
 - Foundry + OpenZeppelin 5
 - Arc, USDC as gas
 - Hosted on Vercel
