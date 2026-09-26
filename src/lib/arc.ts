@@ -40,8 +40,8 @@ export const arcMainnet = defineChain({
 
 export const SUPPORTED_CHAINS = [arcTestnet, arcMainnet] as const;
 
-/** The default chain for new connections. Swap to arcMainnet after manual deploy per MAINNET.md. */
-export const activeChain = arcTestnet;
+/** The default chain for new connections. Set to arcMainnet now that mainnet is deployed. */
+export const activeChain = arcMainnet;
 
 /** USDC predeploy on all Arc networks (mainnet and testnet). 6 decimals (ERC-20 view). */
 export const ARC_USDC_ADDRESS =

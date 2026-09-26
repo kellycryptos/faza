@@ -5,9 +5,11 @@ node_modules/
 .next/
 out/
 
-# Foundry artifacts
+# Foundry & compile artifacts
 contracts/out/
 contracts/cache/
+cache/
+*.tsbuildinfo
 
 # Environment — never commit secrets
 .env

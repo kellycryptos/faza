@@ -1,9 +1,17 @@
 # Faza — Mainnet Deploy
 
-> Arc Studio's platform deployer targets testnets only. Mainnet deploy is manual.
-> Run the steps below from your own machine after you have tested the full bond and OTC loops on testnet.
+> **Status:** Deployed to Arc Mainnet (`5042`).
+> Both contracts are live and verified with the native USDC predeploy.
+
+### Live Mainnet Contracts
+
+| Contract | Address | Explorer |
+|---|---|---|
+| `FazaBond` | `0x3e925db0bdcb64991f21a8c32b778c3265b349df` | [explorer](https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df) |
+| `FazaOTC` | `0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2` | [explorer](https://explorer.arc.io/address/0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2) |
 
 ---
+
 
 ## Network facts
 

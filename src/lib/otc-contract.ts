@@ -1,7 +1,7 @@
 import { type Address } from "viem";
 
 const TESTNET_FAZAOTC = "0xe49a617643c87017daa0ed62ea28317710e6c912";
-const MAINNET_FAZAOTC = process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS ?? "";
+const MAINNET_FAZAOTC = process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS || "0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2";
 
 /** Returns the FazaOTC contract address for a given chainId. */
 export function getFazaOtcAddress(chainId?: number): Address | undefined {
@@ -13,8 +13,9 @@ export function getFazaOtcAddress(chainId?: number): Address | undefined {
   return addr as Address;
 }
 
-/** Static address for use in non-hook contexts (defaults to testnet). */
-export const FAZAOTC_ADDRESS = (process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS ?? TESTNET_FAZAOTC) as Address;
+/** Static address for use in non-hook contexts (defaults to mainnet). */
+export const FAZAOTC_ADDRESS = (process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS ??
+  MAINNET_FAZAOTC) as Address;
 
 export const FAZAOTC_ABI = [
   // State-changing
