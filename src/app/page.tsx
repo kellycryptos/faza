@@ -13,6 +13,7 @@ import {
 } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
+import { JudgeGuide } from "@/components/JudgeGuide";
 
 type Tab = "bond" | "otc";
 type FilterBond = "all" | "mine" | "open" | "ready";
@@ -142,6 +143,11 @@ export default function HomePage() {
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
+
+      {/* DoraHacks Judge Guide */}
+      <div style={{ paddingTop: "1.25rem" }}>
+        <JudgeGuide />
+      </div>
 
       {/* Mainnet deploy banner */}
       {isMainnet && (mainnetBondMissing || mainnetOtcMissing) && (
