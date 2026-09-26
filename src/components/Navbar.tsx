@@ -19,7 +19,7 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
   const current = getChain(chainId);
   const isMainnet = chainId === arcMainnet.id;
   const dotColor = !chainId ? "var(--subtle)" : supported ? "var(--accent)" : "var(--amber)";
-  const label = !chainId ? "Not connected"
+  const label = !chainId ? "ARC MAINNET"
     : !supported ? "Wrong network"
     : isMainnet ? "ARC MAINNET"
     : "ARC TESTNET";
@@ -65,8 +65,9 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
           borderRadius: 12, overflow: "hidden", minWidth: 180, zIndex: 100,
           boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}>
-          {[arcTestnet, arcMainnet].map((chain) => {
+          {[arcMainnet, arcTestnet].map((chain) => {
             const active = chainId === chain.id;
+            const isMain = chain.id === arcMainnet.id;
             return (
               <button
                 key={chain.id}
@@ -76,7 +77,7 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
                   width: "100%", padding: "0.7rem 1rem",
                   background: active ? "rgba(46,230,166,0.07)" : "transparent",
                   border: "none", cursor: "pointer",
-                  borderBottom: chain.id === arcTestnet.id ? "1px solid var(--border)" : "none",
+                  borderBottom: isMain ? "1px solid var(--border)" : "none",
                 }}
               >
                 <span style={{
@@ -84,11 +85,16 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
                   background: active ? "var(--accent)" : "var(--border-strong)",
                 }} />
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)" }}>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
                     {chain.name}
+                    {isMain && (
+                      <span style={{ fontSize: "0.6rem", background: "var(--accent-dim)", color: "var(--accent)", padding: "1px 5px", borderRadius: 4, fontWeight: 700 }}>
+                        PRIMARY
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: "0.68rem", color: "var(--subtle)" }}>
-                    Chain ID {chain.id}
+                    {isMain ? "Arc Mainnet · 5042" : "Sandbox / Testing · 5042002"}
                   </div>
                 </div>
                 {active && (
@@ -103,14 +109,14 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
           {!supported && chainId && (
             <div style={{ padding: "0.6rem 1rem", borderTop: "1px solid var(--border)" }}>
               <button
-                onClick={() => { switchChain({ chainId: arcTestnet.id }); setOpen(false); }}
+                onClick={() => { switchChain({ chainId: arcMainnet.id }); setOpen(false); }}
                 style={{
                   width: "100%", background: "var(--accent)", color: "#050B14",
                   border: "none", borderRadius: 8, padding: "0.45rem",
                   fontSize: "0.8rem", fontWeight: 700, cursor: "pointer",
                 }}
               >
-                Switch to Arc Testnet
+                Switch to Arc Mainnet
               </button>
             </div>
           )}

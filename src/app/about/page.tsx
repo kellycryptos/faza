@@ -7,8 +7,11 @@ export const metadata: Metadata = {
     "Faza is an onchain ticket for two-party deals on Arc. Show-up bonds and OTC deal tickets, both settled in USDC.",
 };
 
-const BOND_ADDR = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS ?? "";
-const OTC_ADDR = process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS ?? "";
+const MAINNET_BOND = process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS || "0x3e925db0bdcb64991f21a8c32b778c3265b349df";
+const MAINNET_OTC = process.env.NEXT_PUBLIC_MAINNET_FAZAOTC_ADDRESS || "0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2";
+
+const TESTNET_BOND = process.env.NEXT_PUBLIC_FAZABOND_ADDRESS || "0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221";
+const TESTNET_OTC = process.env.NEXT_PUBLIC_FAZAOTC_ADDRESS || "0xe49a617643c87017daa0ed62ea28317710e6c912";
 
 export default function AboutPage() {
   return (
@@ -63,7 +66,7 @@ export default function AboutPage() {
         </p>
 
         <p>
-          Arc is where USDC is the native gas token — no separate ETH to bridge or buy.
+          Arc is where USDC is the native gas token — no separate ETH or native token to bridge or buy.
           Gas fees are stable and cost fractions of a cent, so a $0.01 stake or a small
           OTC bond is not eaten by gas before it settles. That makes tiny coordination
           instruments practical for the first time.
@@ -82,21 +85,19 @@ export default function AboutPage() {
         </p>
 
         <p>
-          <strong>Judge path — Bond:</strong> Connect Wallet A to Arc Testnet, click{" "}
-          <strong>New bond</strong> on the Bonds tab, stake $0.50 USDC, set a deadline
-          30 minutes out. Copy the bond URL. Open it in a second browser profile with{" "}
-          Wallet B. Wallet B clicks <strong>Join</strong>. Both wallets click{" "}
-          <strong>Check in</strong>. After the deadline, either wallet clicks{" "}
-          <strong>Settle</strong>, then <strong>Claim</strong>. Both stakes return.
-          You have two explorer links.
+          <strong>How to use — Show-up Bond:</strong> Connect your wallet to Arc Mainnet (or Arc Testnet for testing), click{" "}
+          <strong>New bond</strong> on the Bonds tab, stake $0.10 USDC (or any amount $0.01–$100), set a deadline.
+          Share the bond URL with your counterparty. The second wallet clicks <strong>Join</strong>.
+          Both wallets click <strong>Check in</strong> before the deadline.
+          After the deadline, either wallet clicks <strong>Settle</strong>, then <strong>Claim</strong>.
+          Both stakes return, verified onchain.
         </p>
 
         <p>
-          <strong>Judge path — OTC (offchain bond):</strong> Click <strong>New OTC deal</strong>{" "}
-          on the OTC tab. Leave asset blank (offchain). Paste a term sheet, note the hash.
-          Wallet B joins with the same hash — if the hashes differ the contract reverts.
-          Both wallets click <strong>Attest</strong>, then <strong>Confirm done</strong>.
-          After the deadline, either wallet settles. Both stakes return.
+          <strong>How to use — OTC Deal Ticket:</strong> Click <strong>New deal</strong>{" "}
+          on the OTC tab. Leave asset blank for offchain agreements, or enter an Arc ERC-20 token address.
+          Paste a term sheet, note the cryptographic hash. The buyer joins with the matching hash—if terms differ,
+          the contract reverts. Both parties attest and confirm, then settle onchain.
         </p>
 
         <p>
@@ -105,7 +106,48 @@ export default function AboutPage() {
         </p>
       </div>
 
-      {/* Contracts card */}
+      {/* Mainnet Contracts Card */}
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid rgba(46,230,166,0.35)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+          boxShadow: "0 0 20px rgba(46,230,166,0.06)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p
+            style={{
+              fontSize: "0.68rem",
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--accent)",
+              margin: 0,
+            }}
+          >
+            Live Contracts · Arc Mainnet (Primary)
+          </p>
+          <span style={{ fontSize: "0.68rem", background: "var(--accent-dim)", color: "var(--accent)", padding: "2px 8px", borderRadius: "var(--radius-pill)", fontWeight: 700 }}>
+            LIVE
+          </span>
+        </div>
+
+        <ContractRow label="FazaBond" addr={MAINNET_BOND} explorerBase="https://explorer.arc.io" />
+        <ContractRow label="FazaOTC" addr={MAINNET_OTC} explorerBase="https://explorer.arc.io" />
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginTop: "0.25rem" }}>
+          <InfoRow label="USDC" value="0x3600…0000" />
+          <InfoRow label="Chain ID" value="5042" />
+          <InfoRow label="Network" value="Arc Mainnet" />
+        </div>
+      </div>
+
+      {/* Testnet Contracts Card */}
       <div
         style={{
           background: "var(--surface)",
@@ -127,11 +169,11 @@ export default function AboutPage() {
             margin: 0,
           }}
         >
-          Contracts · Arc Testnet
+          Sandbox Contracts · Arc Testnet (Secondary)
         </p>
 
-        <ContractRow label="FazaBond" addr={BOND_ADDR} />
-        <ContractRow label="FazaOTC" addr={OTC_ADDR} />
+        <ContractRow label="FazaBond (Testnet)" addr={TESTNET_BOND} explorerBase="https://explorer.testnet.arc.io" />
+        <ContractRow label="FazaOTC (Testnet)" addr={TESTNET_OTC} explorerBase="https://explorer.testnet.arc.io" />
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginTop: "0.25rem" }}>
           <InfoRow label="USDC" value="0x3600…0000" />
@@ -150,7 +192,7 @@ export default function AboutPage() {
   );
 }
 
-function ContractRow({ label, addr }: { label: string; addr: string }) {
+function ContractRow({ label, addr, explorerBase }: { label: string; addr: string; explorerBase: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <span
@@ -167,7 +209,7 @@ function ContractRow({ label, addr }: { label: string; addr: string }) {
       {addr ? (
         <a
           className="mono"
-          href={`https://explorer.testnet.arc.io/address/${addr}`}
+          href={`${explorerBase}/address/${addr}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{ fontSize: "0.82rem", color: "var(--accent)", wordBreak: "break-all" }}
@@ -176,7 +218,7 @@ function ContractRow({ label, addr }: { label: string; addr: string }) {
         </a>
       ) : (
         <span className="mono" style={{ fontSize: "0.8rem", color: "var(--subtle)" }}>
-          not set — add NEXT_PUBLIC_{label.toUpperCase().replace(/[^A-Z]/g, "_")}_ADDRESS to .env
+          not deployed
         </span>
       )}
     </div>

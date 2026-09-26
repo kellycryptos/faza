@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useSwitchChain } from "wagmi";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
-import { getFazaBondAddress } from "@/lib/contract";
-import { getFazaOtcAddress } from "@/lib/otc-contract";
 
 export function JudgeGuide() {
   const [open, setOpen] = useState(false);
   const { chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
 
   const isMainnet = chainId === arcMainnet.id;
-  const bondAddr = getFazaBondAddress(chainId ?? arcMainnet.id);
-  const otcAddr = getFazaOtcAddress(chainId ?? arcMainnet.id);
+  const isTestnet = chainId === arcTestnet.id;
 
   return (
     <div
@@ -60,10 +58,10 @@ export function JudgeGuide() {
                 boxShadow: "0 0 6px var(--accent-glow)",
               }}
             />
-            DoraHacks Arc Microgrants
+            Protocol Guide
           </span>
           <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--ink)" }}>
-            Judge Quick Tour & Verification
+            How Faza Works & Live Contracts
           </span>
         </div>
 
@@ -82,15 +80,17 @@ export function JudgeGuide() {
             transition: "all 0.15s ease",
           }}
         >
-          {open ? "Hide guide ▲" : "60-Second Test Path ▼"}
+          {open ? "Hide guide ▲" : "Quick Guide ▼"}
         </button>
       </div>
 
       {open && (
         <div style={{ marginTop: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <p style={{ fontSize: "0.85rem", color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>
-            Faza is an onchain show-up bond and OTC coordination protocol built specifically for{" "}
-            <strong>Arc Mainnet</strong> and <strong>Arc Testnet</strong> where <strong>USDC is the native gas asset</strong>.
+            Faza is an onchain show-up bond and OTC coordination protocol built for{" "}
+            <strong>Arc Mainnet</strong> (with Arc Testnet sandbox support) where{" "}
+            <strong>USDC is the native gas asset</strong>. Two wallets lock USDC, commit to identical terms,
+            and settle trustlessly onchain.
           </p>
 
           {/* Test steps */}
@@ -101,6 +101,7 @@ export function JudgeGuide() {
               gap: "0.75rem",
             }}
           >
+            {/* Step 1 */}
             <div
               style={{
                 background: "var(--surface)",
@@ -111,33 +112,36 @@ export function JudgeGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>1.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Get Gas / USDC</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Get USDC & Gas</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Testnet:{" "}
-                <a
-                  href="https://faucet.circle.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--accent)", textDecoration: "underline" }}
-                >
-                  Circle Faucet
-                </a>{" "}
-                (free testnet USDC).
-                <br />
-                Mainnet:{" "}
+                <strong style={{ color: "var(--ink)" }}>Mainnet (Primary):</strong> Bridge USDC at{" "}
                 <a
                   href="https://bridge.arc.io"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "var(--accent)", textDecoration: "underline" }}
                 >
-                  Arc Bridge
-                </a>{" "}
-                (gas is fractions of a cent).
+                  bridge.arc.io
+                </a>
+                . Gas is fractions of a cent paid in USDC.
+                <br />
+                <span style={{ color: "var(--subtle)" }}>
+                  <strong>Testnet (Sandbox):</strong> Free testnet tokens from{" "}
+                  <a
+                    href="https://faucet.circle.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--muted)", textDecoration: "underline" }}
+                  >
+                    Circle Faucet
+                  </a>
+                  .
+                </span>
               </p>
             </div>
 
+            {/* Step 2 */}
             <div
               style={{
                 background: "var(--surface)",
@@ -148,14 +152,15 @@ export function JudgeGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>2.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Test a Show-up Bond</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Show-up Bonds</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Click <strong>New bond</strong>, stake $0.10, deadline 15m. Copy URL into second wallet/incognito, click{" "}
-                <strong>Join</strong>, check in, and settle!
+                Open a bond with a USDC stake ($0.01 min) and deadline. Second wallet joins with matching stake.
+                Both check in before deadline to reclaim stakes—or the one who showed takes both.
               </p>
             </div>
 
+            {/* Step 3 */}
             <div
               style={{
                 background: "var(--surface)",
@@ -166,10 +171,11 @@ export function JudgeGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>3.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Inspect OTC Ticket</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>OTC Deal Tickets</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Commit terms with live onchain keccak256 hash. Buyer verifies & joins matching terms without intermediary risk.
+                Commit a term sheet with a cryptographic keccak256 hash. Buyer joins matching identical terms.
+                Contract handles PvP token delivery or enforces a USDC bond for offchain agreements.
               </p>
             </div>
           </div>
@@ -188,7 +194,7 @@ export function JudgeGuide() {
             }}
           >
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ color: "var(--subtle)", fontWeight: 600 }}>Verified Mainnet Contracts:</span>
+              <span style={{ color: "var(--subtle)", fontWeight: 600 }}>Mainnet Contracts (5042):</span>
               <a
                 href="https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df"
                 target="_blank"
@@ -196,7 +202,7 @@ export function JudgeGuide() {
                 className="mono"
                 style={{ color: "var(--accent)", textDecoration: "none" }}
               >
-                FazaBond (5042) ↗
+                FazaBond ↗
               </a>
               <a
                 href="https://explorer.arc.io/address/0x84a4d4c0b1ccb2bef624d46d4c4e70470f9ebdb2"
@@ -205,13 +211,58 @@ export function JudgeGuide() {
                 className="mono"
                 style={{ color: "var(--accent)", textDecoration: "none" }}
               >
-                FazaOTC (5042) ↗
+                FazaOTC ↗
+              </a>
+
+              <span style={{ color: "var(--border-strong)" }}>|</span>
+
+              <span style={{ color: "var(--subtle)" }}>Testnet (Sandbox):</span>
+              <a
+                href="https://explorer.testnet.arc.io/address/0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono"
+                style={{ color: "var(--muted)", textDecoration: "none" }}
+              >
+                FazaBond ↗
+              </a>
+              <a
+                href="https://explorer.testnet.arc.io/address/0xe49a617643c87017daa0ed62ea28317710e6c912"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono"
+                style={{ color: "var(--muted)", textDecoration: "none" }}
+              >
+                FazaOTC ↗
               </a>
             </div>
 
-            <span style={{ color: "var(--subtle)" }}>
-              Network: <strong>{isMainnet ? "Arc Mainnet (5042)" : "Arc Testnet (5042002)"}</strong>
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {isTestnet ? (
+                <>
+                  <span style={{ color: "var(--amber)" }}>Current: <strong>Arc Testnet (Sandbox)</strong></span>
+                  <button
+                    onClick={() => switchChain({ chainId: arcMainnet.id })}
+                    style={{
+                      background: "var(--accent)",
+                      color: "#07080B",
+                      border: "none",
+                      borderRadius: "var(--radius-btn)",
+                      padding: "2px 8px",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Switch to Mainnet
+                  </button>
+                </>
+              ) : (
+                <span style={{ color: isMainnet ? "var(--accent)" : "var(--subtle)", fontWeight: 600 }}>
+                  {isMainnet ? "✓ Connected to Arc Mainnet (5042)" : "Arc Mainnet (Chain ID 5042)"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}

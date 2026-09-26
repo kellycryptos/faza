@@ -28,7 +28,7 @@ export const arcTestnet = defineChain({
 
 export const arcMainnet = defineChain({
   id: 5042,
-  name: "Arc",
+  name: "Arc Mainnet",
   nativeCurrency: { decimals: 18, name: "USDC", symbol: "USDC" },
   rpcUrls: {
     default: { http: ["https://rpc.mainnet.arc.io"] }, // arc-studio-allow-onchain-literal
@@ -38,7 +38,7 @@ export const arcMainnet = defineChain({
   },
 });
 
-export const SUPPORTED_CHAINS = [arcTestnet, arcMainnet] as const;
+export const SUPPORTED_CHAINS = [arcMainnet, arcTestnet] as const;
 
 /** The default chain for new connections. Set to arcMainnet now that mainnet is deployed. */
 export const activeChain = arcMainnet;
