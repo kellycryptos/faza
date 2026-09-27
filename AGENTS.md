@@ -26,4 +26,4 @@
 - `src/hooks/useBonds.ts` — batch-reads all bonds from chain
 - `src/app/page.tsx` — home feed + create form
 - `src/app/faza/[id]/page.tsx` — single bond page
-- `src/app/about/page.tsx` — 6-sentence explainer for judges
+- `src/app/about/page.tsx` — comprehensive protocol explainer and contract reference

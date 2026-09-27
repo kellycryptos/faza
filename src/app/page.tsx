@@ -13,7 +13,7 @@ import {
 } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
-import { JudgeGuide } from "@/components/JudgeGuide";
+import { ProtocolGuide } from "@/components/ProtocolGuide";
 
 type Tab = "bond" | "otc";
 type FilterBond = "all" | "mine" | "open" | "ready";
@@ -149,7 +149,7 @@ export default function HomePage() {
 
       {/* Protocol Quick Guide */}
       <div style={{ paddingTop: "1.25rem" }}>
-        <JudgeGuide />
+        <ProtocolGuide />
       </div>
 
       {/* Network Switch Prompt if wallet connected to an unsupported chain */}

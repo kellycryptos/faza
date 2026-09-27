@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
 
-export function JudgeGuide() {
+export function ProtocolGuide() {
   const [open, setOpen] = useState(false);
   const { chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -58,7 +58,7 @@ export function JudgeGuide() {
                 boxShadow: "0 0 6px var(--accent-glow)",
               }}
             />
-            Protocol Guide
+            Protocol Architecture
           </span>
           <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--ink)" }}>
             How Faza Works & Live Contracts
@@ -80,17 +80,17 @@ export function JudgeGuide() {
             transition: "all 0.15s ease",
           }}
         >
-          {open ? "Hide guide ▲" : "Quick Guide ▼"}
+          {open ? "Hide guide ▲" : "Protocol Guide ▼"}
         </button>
       </div>
 
       {open && (
         <div style={{ marginTop: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <p style={{ fontSize: "0.85rem", color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>
-            Faza is an onchain show-up bond and OTC coordination protocol built for{" "}
+            Faza is an autonomous bilateral coordination and settlement protocol built for{" "}
             <strong>Arc Mainnet</strong> (with Arc Testnet sandbox support) where{" "}
-            <strong>USDC is the native gas asset</strong>. Two wallets lock USDC, commit to identical terms,
-            and settle trustlessly onchain.
+            <strong>USDC functions as the native gas token</strong>. Two wallets lock USDC, commit to identical terms,
+            and settle purely onchain with zero intermediary custody.
           </p>
 
           {/* Test steps */}
@@ -112,10 +112,10 @@ export function JudgeGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>1.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Get USDC & Gas</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Gas & Settlement</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                <strong style={{ color: "var(--ink)" }}>Mainnet (Primary):</strong> Bridge USDC at{" "}
+                <strong style={{ color: "var(--ink)" }}>Arc Mainnet:</strong> Bridge USDC via{" "}
                 <a
                   href="https://bridge.arc.io"
                   target="_blank"
@@ -124,10 +124,10 @@ export function JudgeGuide() {
                 >
                   bridge.arc.io
                 </a>
-                . Gas is fractions of a cent paid in USDC.
+                . Gas is fractions of a cent paid directly in USDC.
                 <br />
                 <span style={{ color: "var(--subtle)" }}>
-                  <strong>Testnet (Sandbox):</strong> Free testnet tokens from{" "}
+                  <strong>Testnet Sandbox:</strong> Test tokens available from{" "}
                   <a
                     href="https://faucet.circle.com"
                     target="_blank"
@@ -155,8 +155,8 @@ export function JudgeGuide() {
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Show-up Bonds</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Open a bond with a USDC stake ($0.01 min) and deadline. Second wallet joins with matching stake.
-                Both check in before deadline to reclaim stakes—or the one who showed takes both.
+                Wallet A locks a USDC stake ($0.01–$100) and sets a deadline. Wallet B joins with matching stake.
+                Both check in before deadline to unlock refund. If one party ghosts, the one who checked in claims both stakes.
               </p>
             </div>
 
@@ -174,8 +174,8 @@ export function JudgeGuide() {
                 <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>OTC Deal Tickets</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Commit a term sheet with a cryptographic keccak256 hash. Buyer joins matching identical terms.
-                Contract handles PvP token delivery or enforces a USDC bond for offchain agreements.
+                Seller commits a term sheet hashed onchain (keccak256). Buyer joins with identical hash.
+                For Arc ERC-20 tokens, settles atomic delivery vs USDC payment. For offchain transfers, locks a mutual USDC bond.
               </p>
             </div>
           </div>

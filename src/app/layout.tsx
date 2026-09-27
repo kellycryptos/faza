@@ -19,11 +19,20 @@ export const metadata: Metadata = {
     "Smart Contracts",
     "Show-up Bonds",
     "OTC Deals",
-    "DoraHacks",
+    "Bilateral Bonds",
+    "Escrow",
     "Web3",
   ],
   authors: [{ name: "kellycryptos", url: "https://github.com/kellycryptos" }],
   creator: "kellycryptos",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
   openGraph: {
     title: "Faza — Show up, or forfeit the stake",
     description:

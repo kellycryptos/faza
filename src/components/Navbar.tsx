@@ -8,6 +8,7 @@ import {
   arcTestnet, arcMainnet, ARC_USDC_ADDRESS,
   isSupportedChain, getChain, formatUsdc,
 } from "@/lib/arc";
+import { FazaLogo } from "@/components/FazaLogo";
 
 function NetworkDropdown({ chainId }: { chainId?: number }) {
   const [open, setOpen] = useState(false);
@@ -205,11 +206,16 @@ export function Navbar() {
         display: "flex", alignItems: "center", padding: "0 1.25rem", gap: "0.75rem",
       }}
     >
-      <Link href="/" style={{
-        fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.04em",
-        color: "var(--ink)", textDecoration: "none", flex: 1,
-      }}>
-        Faza
+      <Link
+        href="/"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          textDecoration: "none",
+          flex: 1,
+        }}
+      >
+        <FazaLogo size={28} showText={true} />
       </Link>
 
       <nav style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>

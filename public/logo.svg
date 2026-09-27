@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none">
+  <defs>
+    <linearGradient id="fazaBgSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111723" />
+      <stop offset="100%" stop-color="#05070A" />
+    </linearGradient>
+    <linearGradient id="fazaBorderSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2EE6A6" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#182436" stop-opacity="0.5" />
+    </linearGradient>
+    <linearGradient id="fazaTealSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5BFFC6" />
+      <stop offset="50%" stop-color="#2EE6A6" />
+      <stop offset="100%" stop-color="#0FB37F" />
+    </linearGradient>
+    <linearGradient id="fazaCyanSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="100%" stop-color="#2EE6A6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon Mark (48x48) -->
+  <g transform="translate(4, 8)">
+    <rect x="0" y="0" width="48" height="48" rx="13" fill="url(#fazaBgSmall)" stroke="url(#fazaBorderSmall)" stroke-width="1.8" />
+    <g transform="translate(2, 2) scale(0.086)">
+      <path
+        d="M 144 140
+           C 144 126.745 154.745 116 168 116
+           L 352 116
+           C 362.609 116 372.33 121.996 377.106 131.472
+           L 348 188
+           C 344.5 195 337.2 200 329 200
+           L 224 200
+           L 224 372
+           C 224 383.046 215.046 392 204 392
+           L 164 392
+           C 152.954 392 144 383.046 144 372
+           Z"
+        fill="url(#fazaTealSmall)"
+      />
+      <path
+        d="M 224 240
+           L 316 240
+           C 324.2 240 331.5 245 335 252
+           L 316 292
+           C 312 300 304 306 295 306
+           L 224 306
+           Z"
+        fill="url(#fazaCyanSmall)"
+      />
+      <circle cx="340" cy="268" r="10" fill="#5BFFC6" />
+      <circle cx="340" cy="268" r="22" fill="#2EE6A6" opacity="0.4" />
+    </g>
+  </g>
+
+  <!-- Wordmark 'FAZA' -->
+  <text x="64" y="38" fill="#F4F6FA" font-family="'Inter', system-ui, -apple-system, sans-serif" font-size="24" font-weight="900" letter-spacing="-0.04em">FAZA</text>
+  
+  <!-- Network / Subtitle Pill -->
+  <rect x="138" y="23" width="46" height="17" rx="8.5" fill="rgba(46,230,166,0.12)" stroke="rgba(46,230,166,0.3)" stroke-width="1" />
+  <text x="146" y="35" fill="#2EE6A6" font-family="'Inter', system-ui, sans-serif" font-size="9" font-weight="800" letter-spacing="0.08em">ARC</text>
+  
+  <text x="65" y="49" fill="#5A6478" font-family="'Inter', system-ui, sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.08em">SHOW UP OR FORFEIT</text>
+</svg>

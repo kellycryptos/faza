@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FazaLogo } from "@/components/FazaLogo";
 
 export const metadata: Metadata = {
-  title: "About — Faza",
+  title: "About — Faza Protocol",
   description:
-    "Faza is an onchain ticket for two-party deals on Arc. Show-up bonds and OTC deal tickets, both settled in USDC.",
+    "Faza is an autonomous bilateral coordination and settlement protocol on Arc. Two-party show-up bonds and cryptographic OTC deal tickets settled in native USDC.",
 };
 
 const MAINNET_BOND = process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS || "0x3e925db0bdcb64991f21a8c32b778c3265b349df";
@@ -17,15 +18,18 @@ export default function AboutPage() {
   return (
     <div
       style={{
-        maxWidth: 640,
+        maxWidth: 680,
         margin: "0 auto",
         padding: "3rem 1.25rem 5rem",
         display: "flex",
         flexDirection: "column",
-        gap: "2rem",
+        gap: "2.5rem",
       }}
     >
       <div>
+        <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: "1rem" }}>
+          <FazaLogo size={32} showText={true} badge="Protocol" />
+        </Link>
         <p
           style={{
             fontSize: "0.72rem",
@@ -33,78 +37,181 @@ export default function AboutPage() {
             letterSpacing: "0.15em",
             textTransform: "uppercase",
             color: "var(--accent)",
-            marginBottom: "0.75rem",
+            marginBottom: "0.5rem",
           }}
         >
-          About
+          Protocol Documentation
         </p>
         <h1
           className="display"
-          style={{ fontSize: "2rem", fontWeight: 800, color: "var(--ink)", margin: 0 }}
+          style={{ fontSize: "2.25rem", fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.03em" }}
         >
           What is Faza?
         </h1>
+        <p style={{ color: "var(--muted)", fontSize: "1.05rem", marginTop: "0.5rem", lineHeight: 1.6 }}>
+          An autonomous bilateral coordination and settlement protocol on Arc Network. Two counterparties lock USDC into smart contract escrow, commit to verified terms, and settle purely onchain.
+        </p>
       </div>
 
-      <div
+      {/* The Problem & Solution */}
+      <section
         style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+          The Problem We Solved
+        </h2>
+        <p style={{ fontSize: "0.925rem", lineHeight: 1.7, color: "var(--ink-2)", margin: 0 }}>
+          In traditional peer-to-peer agreements, there is no financial friction to prevent ghosting or counterparty default. If someone agrees to attend a meeting, complete a delivery, or honor an OTC commitment, failure to follow through carries zero deterministic penalty.
+        </p>
+        <p style={{ fontSize: "0.925rem", lineHeight: 1.7, color: "var(--ink-2)", margin: 0 }}>
+          At the same time, establishing escrow on Ethereum or multi-token L2s for small stakes ($1 to $50) is economically unviable due to gas volatility and the need to purchase separate native gas tokens. Faza solves this by running natively on <strong>Arc</strong>, where <strong>USDC is the gas token</strong> and fees cost fractions of a cent.
+        </p>
+      </section>
+
+      {/* Instrument 1: Show-up Bonds */}
+      <section
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.5rem",
           display: "flex",
           flexDirection: "column",
           gap: "1.25rem",
-          fontSize: "0.975rem",
-          lineHeight: 1.75,
-          color: "var(--ink-2)",
         }}
       >
-        <p>
-          Faza is an onchain ticket for two-party commitments settled in USDC on Arc.
-          The first instrument is a show-up bond: both parties stake USDC, check in before
-          a deadline, and each gets their stake back. The one who ghosts forfeits their stake
-          to the one who showed. The second instrument is an OTC deal ticket: two parties
-          commit to a trade, hash the terms onchain, and settle either a live token swap or
-          a USDC bond against an offchain transfer.
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: 800,
+              background: "var(--accent-dim)",
+              color: "var(--accent)",
+              padding: "2px 8px",
+              borderRadius: "var(--radius-pill)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            INSTRUMENT 01
+          </span>
+          <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+            Show-Up Bonds (<span className="mono" style={{ fontSize: "0.9em" }}>FazaBond</span>)
+          </h2>
+        </div>
+        <p style={{ fontSize: "0.925rem", lineHeight: 1.7, color: "var(--ink-2)", margin: 0 }}>
+          A two-wallet mutual stake contract. Both parties lock equal USDC collateral, establish a deadline, and must submit an onchain <span className="mono" style={{ fontSize: "0.85em" }}>checkIn()</span> before time expires.
         </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>
+              ✓ Mutual Attendance
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "var(--muted)", lineHeight: 1.5 }}>
+              Both wallets check in before deadline. 100% of staked capital is refunded to each party.
+            </div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--danger)", marginBottom: 4 }}>
+              ✕ Ghosting Penalty
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "var(--muted)", lineHeight: 1.5 }}>
+              If one wallet ghosts, the wallet that checked in claims both stakes (200% payout).
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <p>
-          Arc is where USDC is the native gas token — no separate ETH or native token to bridge or buy.
-          Gas fees are stable and cost fractions of a cent, so a $0.01 stake or a small
-          OTC bond is not eaten by gas before it settles. That makes tiny coordination
-          instruments practical for the first time.
+      {/* Instrument 2: OTC Deal Tickets */}
+      <section
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.25rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: 800,
+              background: "rgba(0,240,255,0.12)",
+              color: "#00F0FF",
+              padding: "2px 8px",
+              borderRadius: "var(--radius-pill)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            INSTRUMENT 02
+          </span>
+          <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+            OTC Deal Tickets (<span className="mono" style={{ fontSize: "0.9em" }}>FazaOTC</span>)
+          </h2>
+        </div>
+        <p style={{ fontSize: "0.925rem", lineHeight: 1.7, color: "var(--ink-2)", margin: 0 }}>
+          A bilateral agreement ticket that hashes commercial terms onchain using <span className="mono" style={{ fontSize: "0.85em" }}>keccak256</span>. The buyer can only enter the contract if their local copy of the terms computes to the identical hash.
         </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+              1. Atomic Onchain PvP Token Swaps
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.5 }}>
+              For Arc ERC-20 tokens: Buyer locks USDC purchase price and collateral stake; seller locks collateral stake. At settlement, the contract executes an atomic exchange: tokens to buyer, USDC to seller. If seller defaults, buyer receives a full refund of price plus both stakes.
+            </div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+              2. Offchain Asset Agreements with Escrowed Bond
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.5 }}>
+              For stock certificates, advisory milestones, or private equity: the contract anchors the terms hash and holds a mutual USDC collateral bond. When the offchain exchange completes, counterparties confirm and retrieve their bonds.
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <p>
-          Every action — create, join, checkIn, attest, confirmDone, settle — is a real
-          onchain transaction. Settlement is determined entirely by contract logic in
-          <span className="mono" style={{ fontSize: "0.875em" }}> FazaBond</span> and
-          <span className="mono" style={{ fontSize: "0.875em" }}> FazaOTC</span>.
-          No server can override it, and nothing moves without a confirmed transaction.
-          For OTC deals where the asset is an Arc token, the contract does a literal PvP
-          swap: tokens go to the buyer, USDC goes to the seller, in one call. For offchain
-          stock or any asset that lives outside Arc, the contract holds only the terms hash
-          and the USDC bond — the share itself does not teleport.
-        </p>
-
-        <p>
-          <strong>How to use — Show-up Bond:</strong> Connect your wallet to Arc Mainnet (or Arc Testnet for testing), click{" "}
-          <strong>New bond</strong> on the Bonds tab, stake $0.10 USDC (or any amount $0.01–$100), set a deadline.
-          Share the bond URL with your counterparty. The second wallet clicks <strong>Join</strong>.
-          Both wallets click <strong>Check in</strong> before the deadline.
-          After the deadline, either wallet clicks <strong>Settle</strong>, then <strong>Claim</strong>.
-          Both stakes return, verified onchain.
-        </p>
-
-        <p>
-          <strong>How to use — OTC Deal Ticket:</strong> Click <strong>New deal</strong>{" "}
-          on the OTC tab. Leave asset blank for offchain agreements, or enter an Arc ERC-20 token address.
-          Paste a term sheet, note the cryptographic hash. The buyer joins with the matching hash—if terms differ,
-          the contract reverts. Both parties attest and confirm, then settle onchain.
-        </p>
-
-        <p>
-          No token, no DAO, no order book, no price feed. Just USDC, Arc, a deadline,
-          and the party that did not show up losing the stake.
-        </p>
-      </div>
+      {/* Security Architecture */}
+      <section
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+          Smart Contract Security Architecture
+        </h2>
+        <ul style={{ paddingLeft: "1.25rem", margin: 0, fontSize: "0.9rem", color: "var(--ink-2)", lineHeight: 1.7 }}>
+          <li>
+            <strong>Pull-over-Push Settlement:</strong> Settlement functions credit internal accounting mappings (<span className="mono" style={{ fontSize: "0.85em" }}>claimable[address]</span>) instead of pushing raw transfers. Users claim their funds independently via <span className="mono" style={{ fontSize: "0.85em" }}>claim()</span>, eliminating DoS vectors and reentrancy loops.
+          </li>
+          <li>
+            <strong>OpenZeppelin SafeERC20:</strong> All token transfers utilize standard, battle-tested OpenZeppelin wrappers.
+          </li>
+          <li>
+            <strong>Native Predeploy Integration:</strong> Interacts directly with Arc&apos;s predeployed native USDC contract at <span className="mono" style={{ fontSize: "0.85em" }}>0x3600000000000000000000000000000000000000</span>.
+          </li>
+          <li>
+            <strong>Zero Custodial Override:</strong> No admin keys, no DAO overrides, no upgradeability proxies. All bond resolutions execute deterministically.
+          </li>
+        </ul>
+      </section>
 
       {/* Mainnet Contracts Card */}
       <div
@@ -130,7 +237,7 @@ export default function AboutPage() {
               margin: 0,
             }}
           >
-            Live Contracts · Arc Mainnet (Primary)
+            Live Contracts · Arc Mainnet (Primary Production)
           </p>
           <span style={{ fontSize: "0.68rem", background: "var(--accent-dim)", color: "var(--accent)", padding: "2px 8px", borderRadius: "var(--radius-pill)", fontWeight: 700 }}>
             LIVE
@@ -182,12 +289,22 @@ export default function AboutPage() {
         </div>
       </div>
 
-      <Link
-        href="/"
-        style={{ fontSize: "0.85rem", color: "var(--muted)", textDecoration: "none" }}
-      >
-        ← Back
-      </Link>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Link
+          href="/"
+          style={{ fontSize: "0.85rem", color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}
+        >
+          ← Return to App
+        </Link>
+        <a
+          href="https://github.com/kellycryptos/faza"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: "0.85rem", color: "var(--muted)", textDecoration: "none" }}
+        >
+          GitHub Repository ↗
+        </a>
+      </div>
     </div>
   );
 }
