@@ -9,17 +9,19 @@ import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS } from "@/lib/contra
 import { BondActions } from "@/components/BondActions";
 import type { BondSummary } from "@/components/BondCard";
 
+import { useNetwork } from "@/context/NetworkContext";
+
 export default function FazaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const bondId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [copied, setCopied] = useState(false);
-  const { chainId } = useAccount();
-  const effectiveChainId = chainId === 5042002 ? 5042002 : 5042;
+  const { chainId: walletChainId } = useAccount();
+  const { chainId: effectiveChainId, isTestnet } = useNetwork();
   const contractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
 
-  const { data: raw, refetch } = useReadContract({
+  const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
     abi: FAZABOND_ABI,
     functionName: "getBond",
@@ -50,13 +52,25 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
   if (isNaN(bondId)) return <Wrapper><p style={{ color: "var(--subtle)" }}>Invalid bond ID.</p></Wrapper>;
   if (!contractAddr) return <Wrapper><p style={{ color: "var(--subtle)" }}>Contract not deployed yet.</p></Wrapper>;
 
+  if (isLoading) {
+    return (
+      <Wrapper>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+          <div style={{ width: "60%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+          <div style={{ height: 120, background: "var(--surface)", borderRadius: "var(--radius-card)", opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+        </div>
+      </Wrapper>
+    );
+  }
+
   const b = raw as {
     creator: `0x${string}`; joiner: `0x${string}`; stake: bigint;
     deadline: bigint; title: string; creatorIn: boolean; joinerIn: boolean; settled: boolean;
   } | undefined;
 
   if (!b || b.creator === "0x0000000000000000000000000000000000000000") {
-    return <Wrapper><p style={{ color: "var(--subtle)" }}>Bond #{bondId} not found.</p></Wrapper>;
+    return <Wrapper><p style={{ color: "var(--subtle)" }}>Bond #{bondId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrapper>;
   }
 
   const bond: BondSummary = {
@@ -83,9 +97,27 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
   return (
     <Wrapper>
       {/* Back */}
-      <Link href="/" style={{ fontSize: "0.8rem", color: "var(--muted)", textDecoration: "none" }}>
-        ← All bonds
+      <Link
+        href={`/${isTestnet ? "?network=testnet" : ""}`}
+        style={{ fontSize: "0.8rem", color: "var(--muted)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+      >
+        ← All {isTestnet ? "testnet " : ""}bonds
       </Link>
+
+      {/* Testnet Sandbox Alert */}
+      {isTestnet && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.09)", border: "1px solid rgba(245, 166, 35, 0.35)",
+          borderRadius: 8, padding: "0.5rem 0.9rem", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", background: "rgba(245,166,35,0.2)", color: "var(--amber)", padding: "1px 6px", borderRadius: 4 }}>
+            TESTNET SANDBOX
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+            This bond is on Arc Testnet (5042002). Collateral is testnet USDC.
+          </span>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -187,10 +219,10 @@ export default function FazaPage({ params }: { params: Promise<{ id: string }> }
           addr={b.creator}
           checkedIn={b.creatorIn}
           isWaiting={false}
-          chainId={chainId}
+          chainId={effectiveChainId}
         />
         {hasJoiner ? (
-          <PartyCard role="Joiner" addr={b.joiner} checkedIn={b.joinerIn} isWaiting={false} chainId={chainId} />
+          <PartyCard role="Joiner" addr={b.joiner} checkedIn={b.joinerIn} isWaiting={false} chainId={effectiveChainId} />
         ) : (
           <div
             style={{

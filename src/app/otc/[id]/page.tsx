@@ -8,6 +8,8 @@ import { useAccount } from "wagmi";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
 import { DealActions } from "@/components/DealActions";
 
+import { useNetwork } from "@/context/NetworkContext";
+
 const ZERO = "0x0000000000000000000000000000000000000000";
 
 export default function OtcPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,11 +17,11 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
   const dealId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
-  const { chainId } = useAccount();
-  const effectiveChainId = chainId === 5042002 ? 5042002 : 5042;
+  const { chainId: walletChainId } = useAccount();
+  const { chainId: effectiveChainId, isTestnet } = useNetwork();
   const contractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
 
-  const { data: raw, refetch } = useReadContract({
+  const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
     abi: FAZAOTC_ABI, functionName: "getDeal",
     args: [BigInt(isNaN(dealId) ? 0 : dealId)],
@@ -37,6 +39,19 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
   };
 
   if (isNaN(dealId)) return <Wrap><p style={{ color: "var(--subtle)" }}>Invalid deal ID.</p></Wrap>;
+  if (!contractAddr) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
+
+  if (isLoading) {
+    return (
+      <Wrap>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+          <div style={{ width: "50%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+          <div style={{ height: 100, background: "var(--surface)", borderRadius: 10, opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+        </div>
+      </Wrap>
+    );
+  }
 
   const d = raw as {
     seller: `0x${string}`; buyer: `0x${string}`; termsHash: `0x${string}`;
@@ -46,8 +61,9 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
     settled: boolean; state: number;
   } | undefined;
 
-  if (!contractAddr) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
-  if (!d || d.seller === ZERO) return <Wrap><p style={{ color: "var(--subtle)" }}>Deal #{dealId} not found.</p></Wrap>;
+  if (!d || d.seller === ZERO) {
+    return <Wrap><p style={{ color: "var(--subtle)" }}>Deal #{dealId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrap>;
+  }
 
   const deal: DealSummary = {
     id: dealId, seller: d.seller, buyer: d.buyer, termsHash: d.termsHash,
@@ -66,7 +82,27 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
 
   return (
     <Wrap>
-      <Link href="/" style={{ fontSize: "0.8rem", color: "var(--muted)", textDecoration: "none" }}>← All deals</Link>
+      <Link
+        href={`/${isTestnet ? "?network=testnet" : ""}`}
+        style={{ fontSize: "0.8rem", color: "var(--muted)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+      >
+        ← All {isTestnet ? "testnet " : ""}deals
+      </Link>
+
+      {/* Testnet Sandbox Alert */}
+      {isTestnet && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.09)", border: "1px solid rgba(245, 166, 35, 0.35)",
+          borderRadius: 8, padding: "0.5rem 0.9rem", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", background: "rgba(245,166,35,0.2)", color: "var(--amber)", padding: "1px 6px", borderRadius: 4 }}>
+            TESTNET SANDBOX
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+            This deal is on Arc Testnet (5042002). Collateral is testnet USDC.
+          </span>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -137,10 +173,10 @@ export default function OtcPage({ params }: { params: Promise<{ id: string }> })
           attested={d.sellerAttested}
           done={d.sellerDone}
           pvp={pvp}
-          chainId={chainId}
+          chainId={effectiveChainId}
         />
         {hasBuyer
-          ? <PartyCard role="Buyer" addr={d.buyer} attested={d.buyerAttested} done={d.buyerDone} pvp={pvp} chainId={chainId} />
+          ? <PartyCard role="Buyer" addr={d.buyer} attested={d.buyerAttested} done={d.buyerDone} pvp={pvp} chainId={effectiveChainId} />
           : (
             <div style={{ background: "var(--surface)", border: "1px dashed var(--border)", borderRadius: 12, padding: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <p style={{ color: "var(--subtle)", fontSize: "0.85rem", margin: 0, textAlign: "center" }}>Waiting for buyer</p>

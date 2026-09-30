@@ -10,25 +10,14 @@ import {
 } from "@/lib/arc";
 import { FazaLogo } from "@/components/FazaLogo";
 
-function NetworkDropdown({ chainId }: { chainId?: number }) {
+import { useNetwork } from "@/context/NetworkContext";
+
+function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
   const [open, setOpen] = useState(false);
-  const { switchChain } = useSwitchChain();
   const ref = useRef<HTMLDivElement>(null);
+  const { network, chainId, isMainnet, isTestnet, setNetwork } = useNetwork();
 
-  const supported = isSupportedChain(chainId);
-  const current = getChain(chainId);
-  const isMainnet = chainId === arcMainnet.id;
-  const isTestnet = chainId === arcTestnet.id;
-
-  const dotColor = !chainId ? "var(--accent)"
-    : isMainnet ? "var(--accent)"
-    : isTestnet ? "var(--amber)"
-    : "#FF494A";
-
-  const label = !chainId ? "ARC MAINNET"
-    : isMainnet ? "ARC MAINNET"
-    : isTestnet ? "ARC TESTNET"
-    : "WRONG NETWORK";
+  const supported = isSupportedChain(walletChainId);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -42,107 +31,217 @@ function NetworkDropdown({ chainId }: { chainId?: number }) {
     <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        title="Switch network between Arc Mainnet and Arc Testnet"
         style={{
-          display: "flex", alignItems: "center", gap: 6,
-          background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: "var(--radius-pill)", padding: "3px 10px",
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          background: isTestnet ? "rgba(245, 166, 35, 0.12)" : "var(--surface)",
+          border: isTestnet ? "1px solid rgba(245, 166, 35, 0.45)" : "1px solid var(--border)",
+          borderRadius: "var(--radius-pill)",
+          padding: "4px 11px",
           cursor: "pointer",
+          transition: "all 0.15s ease",
         }}
       >
-        <span style={{
-          width: 6, height: 6, borderRadius: "50%", background: dotColor,
-          flexShrink: 0, boxShadow: isMainnet || !chainId ? "0 0 6px var(--accent-glow)" : "none",
-        }} />
-        <span style={{
-          fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: !chainId || isMainnet ? "var(--accent)" : isTestnet ? "var(--amber)" : "#FF494A",
-          whiteSpace: "nowrap",
-        }}>
-          {label}
+        <span
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: isMainnet ? "var(--accent)" : "var(--amber)",
+            flexShrink: 0,
+            boxShadow: isMainnet ? "0 0 6px var(--accent-glow)" : "0 0 6px rgba(245, 166, 35, 0.6)",
+          }}
+        />
+        <span
+          style={{
+            fontSize: "0.72rem",
+            fontWeight: 800,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: isMainnet ? "var(--accent)" : "var(--amber)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {isMainnet ? "ARC MAINNET" : "TESTNET SANDBOX"}
         </span>
-        <span style={{ color: "var(--subtle)", fontSize: "0.6rem" }}>▾</span>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={isMainnet ? "var(--subtle)" : "var(--amber)"}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease",
+            display: "inline-block",
+            flexShrink: 0,
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
 
       {open && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 8px)", right: 0,
-          background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: 12, overflow: "hidden", minWidth: 200, zIndex: 100,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}>
-          {/* Mainnet first */}
-          {[arcMainnet, arcTestnet].map((chain) => {
-            const active = chainId === chain.id;
-            const isMain = chain.id === arcMainnet.id;
-            return (
-              <button
-                key={chain.id}
-                onClick={() => { switchChain({ chainId: chain.id }); setOpen(false); }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  width: "100%", padding: "0.75rem 1rem",
-                  background: active ? "rgba(46,230,166,0.07)" : "transparent",
-                  border: "none", cursor: "pointer",
-                  borderBottom: isMain ? "1px solid var(--border)" : "none",
-                  textAlign: "left",
-                }}
-              >
-                <span style={{
-                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-                  background: active
-                    ? (isMain ? "var(--accent)" : "var(--amber)")
-                    : "var(--border-strong)",
-                }} />
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
-                    {chain.name}
-                    <span style={{
-                      fontSize: "0.6rem",
-                      background: isMain ? "var(--accent-dim)" : "rgba(245,166,35,0.12)",
-                      color: isMain ? "var(--accent)" : "var(--amber)",
-                      padding: "1px 5px", borderRadius: 4, fontWeight: 700,
-                    }}>
-                      {isMain ? "PRIMARY" : "SANDBOX"}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--subtle)" }}>
-                    {isMain ? "Arc Mainnet · 5042 (Live)" : "Arc Testnet · 5042002"}
-                  </div>
-                </div>
-                {active && (
-                  <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: isMain ? "var(--accent)" : "var(--amber)", fontWeight: 700 }}>
-                    Active
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            background: "#0D1117",
+            border: "1px solid var(--border-strong)",
+            borderRadius: 14,
+            overflow: "hidden",
+            minWidth: 230,
+            zIndex: 100,
+            boxShadow: "0 12px 36px rgba(0,0,0,0.6)",
+            padding: "4px",
+          }}
+        >
+          <div style={{ padding: "6px 10px 4px", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--subtle)" }}>
+              Select Network View
+            </span>
+          </div>
 
-          {!supported && chainId && (
-            <div style={{ padding: "0.6rem 1rem", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 6 }}>
-              <button
-                onClick={() => { switchChain({ chainId: arcMainnet.id }); setOpen(false); }}
+          {/* Mainnet Option */}
+          <button
+            onClick={() => {
+              setNetwork("mainnet");
+              setOpen(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              width: "100%",
+              padding: "0.75rem 0.85rem",
+              background: isMainnet ? "rgba(46,230,166,0.08)" : "transparent",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "background 0.15s ease",
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                flexShrink: 0,
+                background: isMainnet ? "var(--accent)" : "var(--border-strong)",
+                boxShadow: isMainnet ? "0 0 6px var(--accent-glow)" : "none",
+              }}
+            />
+            <div style={{ textAlign: "left", flex: 1 }}>
+              <div
                 style={{
-                  width: "100%", background: "var(--accent)", color: "#050B14",
-                  border: "none", borderRadius: 8, padding: "0.45rem",
-                  fontSize: "0.8rem", fontWeight: 700, cursor: "pointer",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "var(--ink)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                Switch to Arc Mainnet (Primary)
-              </button>
-              <button
-                onClick={() => { switchChain({ chainId: arcTestnet.id }); setOpen(false); }}
-                style={{
-                  width: "100%", background: "transparent", color: "var(--muted)",
-                  border: "1px solid var(--border)", borderRadius: 8, padding: "0.35rem",
-                  fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
-                }}
-              >
-                Switch to Arc Testnet
-              </button>
+                Arc Mainnet
+                <span
+                  style={{
+                    fontSize: "0.6rem",
+                    background: "var(--accent-dim)",
+                    color: "var(--accent)",
+                    padding: "1px 5px",
+                    borderRadius: 4,
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  LIVE
+                </span>
+              </div>
+              <div style={{ fontSize: "0.68rem", color: "var(--muted)", marginTop: 2 }}>
+                Chain ID 5042 · Real USDC
+              </div>
             </div>
-          )}
+            {isMainnet && (
+              <span style={{ fontSize: "0.72rem", color: "var(--accent)", fontWeight: 800 }}>
+                ✓
+              </span>
+            )}
+          </button>
+
+          {/* Testnet Option */}
+          <button
+            onClick={() => {
+              setNetwork("testnet");
+              setOpen(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              width: "100%",
+              padding: "0.75rem 0.85rem",
+              background: isTestnet ? "rgba(245,166,35,0.08)" : "transparent",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "background 0.15s ease",
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                flexShrink: 0,
+                background: isTestnet ? "var(--amber)" : "var(--border-strong)",
+                boxShadow: isTestnet ? "0 0 6px rgba(245,166,35,0.6)" : "none",
+              }}
+            />
+            <div style={{ textAlign: "left", flex: 1 }}>
+              <div
+                style={{
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "var(--ink)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                Arc Testnet
+                <span
+                  style={{
+                    fontSize: "0.6rem",
+                    background: "rgba(245,166,35,0.15)",
+                    color: "var(--amber)",
+                    padding: "1px 5px",
+                    borderRadius: 4,
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  SANDBOX
+                </span>
+              </div>
+              <div style={{ fontSize: "0.68rem", color: "var(--muted)", marginTop: 2 }}>
+                Chain ID 5042002 · Testnet Faucet
+              </div>
+            </div>
+            {isTestnet && (
+              <span style={{ fontSize: "0.72rem", color: "var(--amber)", fontWeight: 800 }}>
+                ✓
+              </span>
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -194,16 +293,26 @@ function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: 
 }
 
 export function Navbar() {
-  const { address, chainId } = useAccount();
+  const { address, chainId: walletChainId } = useAccount();
+  const { chainId: activeChainId } = useNetwork();
 
   return (
     <header
       style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 60,
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        height: 60,
         background: "rgba(7,8,11,0.88)",
-        backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
         borderBottom: "1px solid var(--border)",
-        display: "flex", alignItems: "center", padding: "0 1.25rem", gap: "0.75rem",
+        display: "flex",
+        alignItems: "center",
+        padding: "0 1.25rem",
+        gap: "0.75rem",
       }}
     >
       <Link
@@ -219,15 +328,21 @@ export function Navbar() {
       </Link>
 
       <nav style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
-        <Link href="/about" style={{
-          fontSize: "0.85rem", fontWeight: 500, color: "var(--muted)", textDecoration: "none",
-        }}>
+        <Link
+          href="/about"
+          style={{
+            fontSize: "0.85rem",
+            fontWeight: 500,
+            color: "var(--muted)",
+            textDecoration: "none",
+          }}
+        >
           About
         </Link>
       </nav>
 
-      <UsdcBalance address={address} chainId={chainId} />
-      <NetworkDropdown chainId={chainId} />
+      <UsdcBalance address={address} chainId={activeChainId} />
+      <NetworkDropdown walletChainId={walletChainId} />
       <ConnectButton showBalance={false} chainStatus="none" />
     </header>
   );

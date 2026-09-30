@@ -14,6 +14,7 @@ import {
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
 import { ProtocolGuide } from "@/components/ProtocolGuide";
+import { useNetwork } from "@/context/NetworkContext";
 
 type Tab = "bond" | "otc";
 type FilterBond = "all" | "mine" | "open" | "ready";
@@ -69,14 +70,10 @@ function FeedSection({
 }
 
 export default function HomePage() {
-  const { address, chainId } = useAccount();
+  const { address, chainId: walletChainId } = useAccount();
   const { switchChain } = useSwitchChain();
-  const onArc = isSupportedChain(chainId);
-  const isTestnet = chainId === arcTestnet.id;
-  const isMainnet = chainId === arcMainnet.id;
-
-  // Primary network is Arc Mainnet (5042). If user explicitly connects on Testnet (5042002), adapt.
-  const effectiveChainId = chainId === arcTestnet.id ? arcTestnet.id : arcMainnet.id;
+  const { network, chainId: effectiveChainId, isMainnet, isTestnet, setNetwork } = useNetwork();
+  const onArc = isSupportedChain(walletChainId);
   const chain = getChain(effectiveChainId);
 
   const [tab, setTab] = useState<Tab>("bond");
@@ -142,7 +139,7 @@ export default function HomePage() {
 
   const explorerBond = bondContractAddr ? getExplorerAddress(bondContractAddr, effectiveChainId) : null;
   const explorerOtc = otcContractAddr ? getExplorerAddress(otcContractAddr, effectiveChainId) : null;
-  const chainLabel = isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet (Live)";
+  const chainLabel = isTestnet ? "Arc Testnet (Sandbox · 5042002)" : "Arc Mainnet (Live · 5042)";
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
@@ -151,6 +148,52 @@ export default function HomePage() {
       <div style={{ paddingTop: "1.25rem" }}>
         <ProtocolGuide />
       </div>
+
+      {/* Testnet Sandbox Banner — clearly labels sandbox mode, visible without wallet */}
+      {isTestnet && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.09)",
+          border: "1px solid rgba(245, 166, 35, 0.4)",
+          borderRadius: "var(--radius-card)",
+          padding: "0.85rem 1.25rem",
+          marginBottom: "1.25rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+          boxShadow: "0 4px 20px rgba(245, 166, 35, 0.08)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{
+              fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.08em",
+              textTransform: "uppercase", background: "rgba(245, 166, 35, 0.2)",
+              color: "var(--amber)", padding: "2px 8px", borderRadius: 4,
+              border: "1px solid rgba(245, 166, 35, 0.4)",
+            }}>
+              TESTNET SANDBOX
+            </span>
+            <div>
+              <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--ink)" }}>
+                Viewing Arc Testnet Sandbox (Chain ID 5042002)
+              </div>
+              <div style={{ fontSize: "0.74rem", color: "var(--muted)", marginTop: 2 }}>
+                All bonds, deals, and contracts shown are in sandbox test mode. Real funds are not at risk.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setNetwork("mainnet")}
+            style={{
+              background: "var(--accent)", color: "#050B14", border: "none",
+              borderRadius: "var(--radius-btn)", padding: "0.45rem 1rem",
+              fontSize: "0.78rem", fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Switch to Arc Mainnet (Live) ↗
+          </button>
+        </div>
+      )}
 
       {/* Network Switch Prompt if wallet connected to an unsupported chain */}
       {address && !onArc && (
@@ -176,7 +219,10 @@ export default function HomePage() {
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
-              onClick={() => switchChain({ chainId: arcMainnet.id })}
+              onClick={() => {
+                setNetwork("mainnet");
+                switchChain({ chainId: arcMainnet.id });
+              }}
               style={{
                 background: "var(--accent)", color: "#050B14", border: "none",
                 borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
@@ -186,7 +232,10 @@ export default function HomePage() {
               Switch to Arc Mainnet (Primary)
             </button>
             <button
-              onClick={() => switchChain({ chainId: arcTestnet.id })}
+              onClick={() => {
+                setNetwork("testnet");
+                switchChain({ chainId: arcTestnet.id });
+              }}
               style={{
                 background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)",
                 borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
@@ -196,39 +245,6 @@ export default function HomePage() {
               Switch to Arc Testnet
             </button>
           </div>
-        </div>
-      )}
-
-      {/* Testnet banner with 1-click switch back to Mainnet */}
-      {address && isTestnet && (
-        <div style={{
-          background: "rgba(245, 166, 35, 0.08)",
-          border: "1px solid rgba(245, 166, 35, 0.25)",
-          borderRadius: "var(--radius-card)",
-          padding: "0.65rem 1.1rem",
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "0.5rem",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} />
-            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--ink)" }}>
-              Connected to <strong>Arc Testnet</strong> (Sandbox Mode)
-            </span>
-          </div>
-          <button
-            onClick={() => switchChain({ chainId: arcMainnet.id })}
-            style={{
-              background: "var(--accent)", color: "#050B14", border: "none",
-              borderRadius: "var(--radius-btn)", padding: "0.3rem 0.8rem",
-              fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
-            }}
-          >
-            Switch to Arc Mainnet (Live) ↗
-          </button>
         </div>
       )}
 
@@ -302,8 +318,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Tab bar */}
+      {/* Tab bar + Network view selector */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+        {/* Product Tabs */}
         <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
           {(["bond", "otc"] as Tab[]).map((t) => (
             <button key={t} onClick={() => { setTab(t); setComposing(false); setSearch(""); }}
@@ -319,6 +336,40 @@ export default function HomePage() {
           ))}
         </div>
 
+        {/* Network View Switcher directly on page */}
+        <div style={{ display: "flex", background: "var(--surface)", border: isTestnet ? "1px solid rgba(245, 166, 35, 0.4)" : "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
+          <button
+            onClick={() => setNetwork("mainnet")}
+            title="Switch view to Arc Mainnet (Production)"
+            style={{
+              background: isMainnet ? "rgba(46, 230, 166, 0.15)" : "transparent",
+              color: isMainnet ? "var(--accent)" : "var(--muted)",
+              border: isMainnet ? "1px solid rgba(46, 230, 166, 0.3)" : "1px solid transparent",
+              borderRadius: 8, padding: "0.35rem 0.75rem",
+              fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+              display: "flex", alignItems: "center", gap: 5,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: isMainnet ? "var(--accent)" : "var(--border-strong)", boxShadow: isMainnet ? "0 0 6px var(--accent-glow)" : "none" }} />
+            Mainnet
+          </button>
+          <button
+            onClick={() => setNetwork("testnet")}
+            title="Switch view to Arc Testnet (Sandbox)"
+            style={{
+              background: isTestnet ? "rgba(245, 166, 35, 0.18)" : "transparent",
+              color: isTestnet ? "var(--amber)" : "var(--muted)",
+              border: isTestnet ? "1px solid rgba(245, 166, 35, 0.4)" : "1px solid transparent",
+              borderRadius: 8, padding: "0.35rem 0.75rem",
+              fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+              display: "flex", alignItems: "center", gap: 5,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: isTestnet ? "var(--amber)" : "var(--border-strong)", boxShadow: isTestnet ? "0 0 6px rgba(245, 166, 35, 0.6)" : "none" }} />
+            Testnet Sandbox
+          </button>
+        </div>
+
         {/* Search */}
         <input
           value={search}
@@ -328,7 +379,7 @@ export default function HomePage() {
             background: "var(--surface-muted)", border: "1px solid var(--border)",
             borderRadius: 8, padding: "0.35rem 0.75rem",
             color: "var(--ink)", fontSize: "0.82rem", fontFamily: "'Inter', sans-serif",
-            outline: "none", width: 140,
+            outline: "none", width: 130,
           }}
         />
 
@@ -336,13 +387,14 @@ export default function HomePage() {
         <button
           onClick={() => setComposing(v => !v)}
           style={{
-            background: "var(--accent)", color: "#050B14",
+            background: isTestnet ? "var(--amber)" : "var(--accent)",
+            color: "#050B14",
             border: "none", borderRadius: "var(--radius-btn)",
             padding: "0.45rem 1rem", fontSize: "0.82rem",
             fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
           }}
         >
-          {composing ? "Cancel" : tab === "bond" ? "New bond" : "New deal"}
+          {composing ? "Cancel" : tab === "bond" ? (isTestnet ? "New testnet bond" : "New bond") : (isTestnet ? "New testnet deal" : "New deal")}
         </button>
       </div>
 
@@ -352,7 +404,7 @@ export default function HomePage() {
           (["all", "mine", "open", "ready"] as FilterBond[]).map((f) => (
             <button key={f} onClick={() => setBondFilter(f)}
               style={{
-                background: bondFilter === f ? "var(--accent)" : "var(--surface)",
+                background: bondFilter === f ? (isTestnet ? "var(--amber)" : "var(--accent)") : "var(--surface)",
                 color: bondFilter === f ? "#050B14" : "var(--muted)",
                 border: bondFilter === f ? "none" : "1px solid var(--border)",
                 borderRadius: "var(--radius-pill)", padding: "3px 12px",
@@ -367,7 +419,7 @@ export default function HomePage() {
           (["all", "mine", "open", "ready"] as FilterDeal[]).map((f) => (
             <button key={f} onClick={() => setDealFilter(f)}
               style={{
-                background: dealFilter === f ? "var(--accent)" : "var(--surface)",
+                background: dealFilter === f ? (isTestnet ? "var(--amber)" : "var(--accent)") : "var(--surface)",
                 color: dealFilter === f ? "#050B14" : "var(--muted)",
                 border: dealFilter === f ? "none" : "1px solid var(--border)",
                 borderRadius: "var(--radius-pill)", padding: "3px 12px",
@@ -384,7 +436,7 @@ export default function HomePage() {
       {/* Compose panel */}
       {composing && (
         <div style={{
-          background: "var(--surface)", border: "1px solid var(--border)",
+          background: "var(--surface)", border: isTestnet ? "1px solid rgba(245, 166, 35, 0.35)" : "1px solid var(--border)",
           borderRadius: "var(--radius-card)", padding: "1.5rem", marginBottom: "1.25rem",
         }}>
           {tab === "bond"
@@ -396,9 +448,9 @@ export default function HomePage() {
       {/* Feed */}
       {tab === "bond" && (
         <FeedSection
-          label={`Bonds${filteredBonds.length !== bonds.length ? ` (${filteredBonds.length} of ${bonds.length})` : ` (${bonds.length})`}`}
+          label={`${isTestnet ? "Testnet Bonds" : "Bonds"}${filteredBonds.length !== bonds.length ? ` (${filteredBonds.length} of ${bonds.length})` : ` (${bonds.length})`}`}
           loading={bondsLoading}
-          empty={!bondContractAddr ? "Contract not deployed." : "No bonds yet. Create the first one."}
+          empty={!bondContractAddr ? "Contract not deployed." : isTestnet ? "No testnet bonds yet. Create the first sandbox bond." : "No bonds yet. Create the first one."}
           deployed={!!bondContractAddr}
         >
           {filteredBonds.map((b) => <BondCard key={b.id} bond={b} />)}
@@ -407,9 +459,9 @@ export default function HomePage() {
 
       {tab === "otc" && (
         <FeedSection
-          label={`OTC deals${filteredDeals.length !== deals.length ? ` (${filteredDeals.length} of ${deals.length})` : ` (${deals.length})`}`}
+          label={`${isTestnet ? "Testnet OTC deals" : "OTC deals"}${filteredDeals.length !== deals.length ? ` (${filteredDeals.length} of ${deals.length})` : ` (${deals.length})`}`}
           loading={dealsLoading}
-          empty={!otcContractAddr ? "OTC contract not deployed." : "No deals yet. Create the first one."}
+          empty={!otcContractAddr ? "OTC contract not deployed." : isTestnet ? "No testnet deals yet. Create the first sandbox deal." : "No deals yet. Create the first one."}
           deployed={!!otcContractAddr}
         >
           {filteredDeals.map((d) => <DealCard key={d.id} deal={d} />)}
@@ -423,22 +475,22 @@ export default function HomePage() {
         display: "flex", flexWrap: "wrap", gap: "1rem",
         justifyContent: "space-between", alignItems: "center",
       }}>
-        <p style={{ fontSize: "0.75rem", color: "var(--subtle)", margin: 0 }}>
+        <p style={{ fontSize: "0.75rem", color: isTestnet ? "var(--amber)" : "var(--subtle)", margin: 0, fontWeight: isTestnet ? 600 : 400 }}>
           Built on {chainLabel} · USDC gas
         </p>
         <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
           {explorerBond && (
             <a href={explorerBond} target="_blank" rel="noopener noreferrer"
               className="mono"
-              style={{ fontSize: "0.72rem", color: "var(--subtle)", textDecoration: "none" }}>
-              FazaBond {bondContractAddr.slice(0, 10)}…
+              style={{ fontSize: "0.72rem", color: isTestnet ? "var(--amber)" : "var(--accent)", textDecoration: "none" }}>
+              FazaBond ({isTestnet ? "Testnet" : "Mainnet"}) {bondContractAddr.slice(0, 10)}… ↗
             </a>
           )}
           {explorerOtc && (
             <a href={explorerOtc} target="_blank" rel="noopener noreferrer"
               className="mono"
-              style={{ fontSize: "0.72rem", color: "var(--subtle)", textDecoration: "none" }}>
-              FazaOTC {otcContractAddr.slice(0, 10)}…
+              style={{ fontSize: "0.72rem", color: isTestnet ? "var(--amber)" : "var(--accent)", textDecoration: "none" }}>
+              FazaOTC ({isTestnet ? "Testnet" : "Mainnet"}) {otcContractAddr.slice(0, 10)}… ↗
             </a>
           )}
         </div>

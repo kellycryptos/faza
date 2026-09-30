@@ -37,31 +37,66 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   );
 }
 
+import { useNetwork } from "@/context/NetworkContext";
+
 export function DealCard({ deal }: { deal: DealSummary }) {
   const pill = dealPill(deal);
   const pvp = isPvp(deal);
   const hasBuyer = deal.buyer && deal.buyer !== ZERO;
+  const { isTestnet } = useNetwork();
 
   return (
-    <Link href={`/otc/${deal.id}`} style={{ textDecoration: "none", display: "block" }}>
+    <Link
+      href={`/otc/${deal.id}${isTestnet ? "?network=testnet" : ""}`}
+      style={{ textDecoration: "none", display: "block" }}
+    >
       <article
         style={{
-          background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: "var(--radius-card)", padding: "1.1rem 1.25rem",
-          display: "flex", flexDirection: "column", gap: "0.65rem",
-          cursor: "pointer", transition: "border-color 0.15s",
+          background: "var(--surface)",
+          border: isTestnet ? "1px solid rgba(245, 166, 35, 0.25)" : "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.1rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.65rem",
+          cursor: "pointer",
+          transition: "border-color 0.15s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-strong)")}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.borderColor = isTestnet ? "var(--amber)" : "var(--border-strong)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.borderColor = isTestnet ? "rgba(245, 166, 35, 0.25)" : "var(--border)")
+        }
       >
         {/* Header row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, flexWrap: "wrap" }}>
+            {isTestnet && (
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  padding: "1px 6px",
+                  borderRadius: 4,
+                  background: "rgba(245, 166, 35, 0.15)",
+                  color: "var(--amber)",
+                  border: "1px solid rgba(245, 166, 35, 0.35)",
+                }}
+              >
+                TESTNET
+              </span>
+            )}
             {/* PvP vs Bond label */}
             <span
               style={{
-                fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.09em",
-                textTransform: "uppercase", padding: "2px 8px",
+                fontSize: "0.65rem",
+                fontWeight: 800,
+                letterSpacing: "0.09em",
+                textTransform: "uppercase",
+                padding: "2px 8px",
                 borderRadius: "var(--radius-pill)",
                 background: pvp ? "rgba(46,230,166,0.08)" : "rgba(245,166,35,0.08)",
                 color: pvp ? "var(--accent)" : "var(--amber)",
@@ -72,7 +107,14 @@ export function DealCard({ deal }: { deal: DealSummary }) {
               {pvp ? "PvP" : "Bond only"}
             </span>
             <span
-              style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: "var(--ink)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
             >
               Deal #{deal.id}
             </span>

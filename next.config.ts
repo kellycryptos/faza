@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  // Silence the workspace-root lockfile detection warning on Vercel/CI
-  outputFileTracingRoot: "/home/user/app",
+  outputFileTracingRoot: path.resolve(__dirname),
   webpack: (config) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     // connectkit -> @base-org/account -> @coinbase/cdp-sdk imports optional

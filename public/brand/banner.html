@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1500, height=500, initial-scale=1.0">
+  <title>Faza OTC - X Banner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 1500px;
+      height: 500px;
+      overflow: hidden;
+      background-color: #05070B;
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      color: #F3F5F9;
+      position: relative;
+    }
+
+    /* Ambient Glow & Grid */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(46, 230, 166, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 230, 166, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 65% 45%, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(circle at 65% 45%, black 40%, transparent 85%);
+    }
+
+    .ambient-glow-1 {
+      position: absolute;
+      width: 700px;
+      height: 500px;
+      left: 45%;
+      top: -100px;
+      background: radial-gradient(circle, rgba(46, 230, 166, 0.16) 0%, rgba(0, 240, 255, 0.08) 40%, transparent 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      right: 20px;
+      bottom: -150px;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, transparent 70%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    /* Main Container */
+    .banner {
+      width: 1500px;
+      height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 90px 0 110px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Left Side: Avatar safe space + Branding */
+    .left-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 760px;
+      padding-left: 200px; /* Safe margin for avatar cutout on X */
+    }
+
+    .pill-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pill-arc {
+      background: rgba(46, 230, 166, 0.12);
+      border: 1px solid rgba(46, 230, 166, 0.35);
+      color: #2EE6A6;
+      box-shadow: 0 0 16px rgba(46, 230, 166, 0.15);
+    }
+
+    .pill-usdc {
+      background: rgba(39, 117, 202, 0.14);
+      border: 1px solid rgba(39, 117, 202, 0.4);
+      color: #5BA8FF;
+    }
+
+    .pill-live {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #B5BFD1;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2EE6A6;
+      box-shadow: 0 0 8px #2EE6A6;
+    }
+
+    .brand-title {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #FFFFFF 30%, #E3E9F3 70%, #90A0B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .otc-gradient {
+      background: linear-gradient(135deg, #2EE6A6 0%, #00F0FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    .brand-subtitle {
+      font-size: 20px;
+      font-weight: 500;
+      color: #8E9DB5;
+      line-height: 1.45;
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+
+    .brand-subtitle strong {
+      color: #E2E8F0;
+      font-weight: 700;
+    }
+
+    .features-list {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #A3B2C7;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-icon {
+      color: #2EE6A6;
+    }
+
+    /* Right Side: Interactive Architecture Diagram */
+    .right-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .escrow-card {
+      width: 420px;
+      padding: 26px 28px;
+      background: rgba(13, 19, 29, 0.75);
+      border: 1px solid rgba(46, 230, 166, 0.25);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(46, 230, 166, 0.08);
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8E9DB5;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(46, 230, 166, 0.15);
+      color: #2EE6A6;
+      border: 1px solid rgba(46, 230, 166, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .parties-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .party-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .party-role {
+      font-size: 11px;
+      color: #718096;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .party-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    .party-sub {
+      font-size: 11px;
+      color: #2EE6A6;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .escrow-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lock-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #162432 0%, #0D1620 100%);
+      border: 1.5px solid #2EE6A6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(46, 230, 166, 0.4);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+    }
+
+    .footer-left {
+      color: #8E9DB5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-right {
+      color: #2EE6A6;
+      font-weight: 700;
+    }
+
+    .border-accent {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, #2EE6A6 40%, #00F0FF 70%, transparent 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <div class="banner">
+    <!-- Left Section -->
+    <div class="left-section">
+      <div class="pill-row">
+        <div class="pill pill-arc">
+          <span class="pulse-dot"></span>
+          <span>ARC MAINNET</span>
+        </div>
+        <div class="pill pill-usdc">
+          <span>USDC SETTLED</span>
+        </div>
+        <div class="pill pill-live">
+          <span>CHAIN ID 5042</span>
+        </div>
+      </div>
+
+      <h1 class="brand-title">
+        FAZA <span class="otc-gradient">OTC</span>
+      </h1>
+
+      <p class="brand-subtitle">
+        Autonomous <strong>Bilateral Escrow &amp; OTC Settlement</strong> protocol.
+        Commit verified terms, lock collateral, and settle trustlessly onchain.
+      </p>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Zero Counterparty Default</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Cryptographic Hash Tickets</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>Show Up or Forfeit</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <div class="escrow-card">
+        <div class="card-header">
+          <span class="card-title">BILATERAL OTC ESCROW</span>
+          <span class="card-badge">LIVE ONCHAIN</span>
+        </div>
+
+        <div class="parties-grid">
+          <div class="party-box">
+            <div class="party-role">Seller</div>
+            <div class="party-value">Deal Asset</div>
+            <div class="party-sub">Stake Locked</div>
+          </div>
+
+          <div class="escrow-center">
+            <div class="lock-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EE6A6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="party-box">
+            <div class="party-role">Buyer</div>
+            <div class="party-value">USDC Escrow</div>
+            <div class="party-sub">Attested</div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="footer-left">
+            <span>Protocol State:</span>
+          </div>
+          <div class="footer-right">
+            <span>SETTLED • ATOMIC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="border-accent"></div>
+</body>
+</html>

@@ -9,6 +9,7 @@ import {
 import { WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
+import { NetworkProvider } from "@/context/NetworkContext";
 
 const walletConnectProjectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ||
@@ -36,9 +37,30 @@ const config = getDefaultConfig({
   ssr: true,
 });
 
-const queryClient = new QueryClient();
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+      },
+    },
+  });
+}
+
+let browserQueryClient: QueryClient | undefined = undefined;
+
+function getQueryClient() {
+  if (typeof window === "undefined") {
+    return makeQueryClient();
+  } else {
+    if (!browserQueryClient) browserQueryClient = makeQueryClient();
+    return browserQueryClient;
+  }
+}
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
+  const queryClient = getQueryClient();
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -52,7 +74,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
             overlayBlur: "small",
           })}
         >
-          {children}
+          <NetworkProvider>{children}</NetworkProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

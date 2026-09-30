@@ -1,35 +1,54 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useSwitchChain } from "wagmi";
+import { useAccount } from "wagmi";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
+import { useNetwork } from "@/context/NetworkContext";
 
 export function ProtocolGuide() {
   const [open, setOpen] = useState(false);
-  const { chainId } = useAccount();
-  const { switchChain } = useSwitchChain();
-
-  const isMainnet = chainId === arcMainnet.id;
-  const isTestnet = chainId === arcTestnet.id;
+  const { isConnected } = useAccount();
+  const { network, isMainnet, isTestnet, setNetwork } = useNetwork();
 
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, rgba(18, 52, 90, 0.4) 0%, rgba(13, 27, 47, 0.6) 100%)",
-        border: "1px solid rgba(46, 230, 166, 0.35)",
+        background: isTestnet
+          ? "linear-gradient(135deg, rgba(35, 26, 12, 0.45) 0%, rgba(20, 16, 10, 0.6) 100%)"
+          : "linear-gradient(135deg, rgba(18, 52, 90, 0.4) 0%, rgba(13, 27, 47, 0.6) 100%)",
+        border: isTestnet
+          ? "1px solid rgba(245, 166, 35, 0.35)"
+          : "1px solid rgba(46, 230, 166, 0.35)",
         borderRadius: "var(--radius-card)",
         padding: "1rem 1.25rem",
         marginBottom: "1.75rem",
-        boxShadow: "0 0 24px rgba(46, 230, 166, 0.08)",
+        boxShadow: isTestnet
+          ? "0 0 24px rgba(245, 166, 35, 0.06)"
+          : "0 0 24px rgba(46, 230, 166, 0.08)",
+        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
       }}
     >
+      {/* Clickable Accordion Header */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-controls="protocol-guide-accordion"
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: "0.75rem",
+          cursor: "pointer",
+          userSelect: "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -41,9 +60,11 @@ export function ProtocolGuide() {
               textTransform: "uppercase",
               padding: "3px 9px",
               borderRadius: "var(--radius-pill)",
-              background: "var(--accent-dim)",
-              color: "var(--accent)",
-              border: "1px solid rgba(46, 230, 166, 0.3)",
+              background: isTestnet ? "rgba(245, 166, 35, 0.15)" : "var(--accent-dim)",
+              color: isTestnet ? "var(--amber)" : "var(--accent)",
+              border: isTestnet
+                ? "1px solid rgba(245, 166, 35, 0.3)"
+                : "1px solid rgba(46, 230, 166, 0.3)",
               display: "flex",
               alignItems: "center",
               gap: 5,
@@ -54,8 +75,8 @@ export function ProtocolGuide() {
                 width: 6,
                 height: 6,
                 borderRadius: "50%",
-                background: "var(--accent)",
-                boxShadow: "0 0 6px var(--accent-glow)",
+                background: isTestnet ? "var(--amber)" : "var(--accent)",
+                boxShadow: isTestnet ? "0 0 6px rgba(245, 166, 35, 0.6)" : "0 0 6px var(--accent-glow)",
               }}
             />
             Protocol Architecture
@@ -65,12 +86,26 @@ export function ProtocolGuide() {
           </span>
         </div>
 
-        <button
-          onClick={() => setOpen((v) => !v)}
+        <div
           style={{
-            background: open ? "rgba(255,255,255,0.08)" : "var(--accent)",
-            color: open ? "var(--ink)" : "#07080B",
-            border: open ? "1px solid var(--border)" : "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            background: open
+              ? "rgba(255,255,255,0.08)"
+              : isTestnet
+              ? "rgba(245, 166, 35, 0.18)"
+              : "var(--accent)",
+            color: open
+              ? "var(--ink)"
+              : isTestnet
+              ? "var(--amber)"
+              : "#07080B",
+            border: open
+              ? "1px solid var(--border)"
+              : isTestnet
+              ? "1px solid rgba(245, 166, 35, 0.4)"
+              : "none",
             borderRadius: "var(--radius-btn)",
             padding: "0.35rem 0.85rem",
             fontSize: "0.78rem",
@@ -80,12 +115,40 @@ export function ProtocolGuide() {
             transition: "all 0.15s ease",
           }}
         >
-          {open ? "Hide guide ▲" : "Protocol Guide ▼"}
-        </button>
+          <span>{open ? "Hide guide" : "Protocol Guide"}</span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
       </div>
 
+      {/* Expandable Accordion Body */}
       {open && (
-        <div style={{ marginTop: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div
+          id="protocol-guide-accordion"
+          style={{
+            marginTop: "1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            animation: "fadeIn 0.2s ease-out",
+          }}
+        >
           <p style={{ fontSize: "0.85rem", color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>
             Faza is an autonomous bilateral coordination and settlement protocol built for{" "}
             <strong>Arc Mainnet</strong> (with Arc Testnet sandbox support) where{" "}
@@ -93,7 +156,7 @@ export function ProtocolGuide() {
             and settle purely onchain with zero intermediary custody.
           </p>
 
-          {/* Test steps */}
+          {/* 3 Step Walkthrough */}
           <div
             style={{
               display: "grid",
@@ -194,7 +257,9 @@ export function ProtocolGuide() {
             }}
           >
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ color: "var(--subtle)", fontWeight: 600 }}>Mainnet Contracts (5042):</span>
+              <span style={{ color: isMainnet ? "var(--accent)" : "var(--subtle)", fontWeight: 700 }}>
+                {isMainnet ? "▶ Mainnet Contracts (Active):" : "Mainnet Contracts (5042):"}
+              </span>
               <a
                 href="https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df"
                 target="_blank"
@@ -216,13 +281,15 @@ export function ProtocolGuide() {
 
               <span style={{ color: "var(--border-strong)" }}>|</span>
 
-              <span style={{ color: "var(--subtle)" }}>Testnet (Sandbox):</span>
+              <span style={{ color: isTestnet ? "var(--amber)" : "var(--subtle)", fontWeight: 700 }}>
+                {isTestnet ? "▶ Testnet Contracts (Active):" : "Testnet (Sandbox):"}
+              </span>
               <a
                 href="https://explorer.testnet.arc.io/address/0xf620ae5e8d024e04ece4fc6ecf69f70c54c50221"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mono"
-                style={{ color: "var(--muted)", textDecoration: "none" }}
+                style={{ color: isTestnet ? "var(--amber)" : "var(--muted)", textDecoration: "none" }}
               >
                 FazaBond ↗
               </a>
@@ -231,7 +298,7 @@ export function ProtocolGuide() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mono"
-                style={{ color: "var(--muted)", textDecoration: "none" }}
+                style={{ color: isTestnet ? "var(--amber)" : "var(--muted)", textDecoration: "none" }}
               >
                 FazaOTC ↗
               </a>
@@ -240,15 +307,18 @@ export function ProtocolGuide() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {isTestnet ? (
                 <>
-                  <span style={{ color: "var(--amber)" }}>Current: <strong>Arc Testnet (Sandbox)</strong></span>
+                  <span style={{ color: "var(--amber)", fontWeight: 600 }}>Active View: <strong>Arc Testnet (Sandbox)</strong></span>
                   <button
-                    onClick={() => switchChain({ chainId: arcMainnet.id })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNetwork("mainnet");
+                    }}
                     style={{
                       background: "var(--accent)",
                       color: "#07080B",
                       border: "none",
                       borderRadius: "var(--radius-btn)",
-                      padding: "2px 8px",
+                      padding: "3px 9px",
                       fontSize: "0.72rem",
                       fontWeight: 700,
                       cursor: "pointer",
@@ -258,9 +328,29 @@ export function ProtocolGuide() {
                   </button>
                 </>
               ) : (
-                <span style={{ color: isMainnet ? "var(--accent)" : "var(--subtle)", fontWeight: 600 }}>
-                  {isMainnet ? "✓ Connected to Arc Mainnet (5042)" : "Arc Mainnet (Chain ID 5042)"}
-                </span>
+                <>
+                  <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                    Active View: Arc Mainnet (5042 Live)
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNetwork("testnet");
+                    }}
+                    style={{
+                      background: "rgba(245, 166, 35, 0.15)",
+                      color: "var(--amber)",
+                      border: "1px solid rgba(245, 166, 35, 0.35)",
+                      borderRadius: "var(--radius-btn)",
+                      padding: "3px 9px",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    View Testnet Sandbox
+                  </button>
+                </>
               )}
             </div>
           </div>

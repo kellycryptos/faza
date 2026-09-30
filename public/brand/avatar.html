@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800, height=800, initial-scale=1.0">
+  <title>Faza OTC - X Avatar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 800px;
+      height: 800px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 45%, #0B1019 0%, #05070A 65%, #020305 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Ambient Outer Halo */
+    .glow-aura {
+      position: absolute;
+      width: 580px;
+      height: 580px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(46, 230, 166, 0.22) 0%, rgba(0, 240, 255, 0.08) 45%, transparent 70%);
+      filter: blur(40px);
+    }
+
+    /* Center Emblem Container */
+    .emblem-wrapper {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    svg {
+      filter: drop-shadow(0 0 25px rgba(46, 230, 166, 0.35));
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-aura"></div>
+
+  <div class="emblem-wrapper">
+    <svg width="560" height="560" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="avatarBg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#141C2B" />
+          <stop offset="50%" stop-color="#0A0E16" />
+          <stop offset="100%" stop-color="#040608" />
+        </linearGradient>
+        <linearGradient id="avatarBorder" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2EE6A6" stop-opacity="0.9" />
+          <stop offset="40%" stop-color="#2EE6A6" stop-opacity="0.3" />
+          <stop offset="75%" stop-color="#182436" stop-opacity="0.5" />
+          <stop offset="100%" stop-color="#00F0FF" stop-opacity="0.7" />
+        </linearGradient>
+        <linearGradient id="tealGrad" x1="36" y1="28" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#7BFFD4" />
+          <stop offset="45%" stop-color="#2EE6A6" />
+          <stop offset="100%" stop-color="#0FB37F" />
+        </linearGradient>
+        <linearGradient id="cyanGrad" x1="56" y1="60" x2="90" y2="76" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#00F0FF" />
+          <stop offset="100%" stop-color="#2EE6A6" />
+        </linearGradient>
+        <radialGradient id="coreGlow" cx="64" cy="62" r="42" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2EE6A6" stop-opacity="0.35" />
+          <stop offset="60%" stop-color="#00D2B4" stop-opacity="0.08" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <!-- Outer Squircle Plate with glowing rim -->
+      <rect
+        x="6"
+        y="6"
+        width="116"
+        height="116"
+        rx="34"
+        fill="url(#avatarBg)"
+        stroke="url(#avatarBorder)"
+        stroke-width="2.5"
+      />
+
+      <!-- Ambient Core Light -->
+      <circle cx="64" cy="62" r="42" fill="url(#coreGlow)" />
+
+      <!-- Upper Wing & Spine (Party 1 Commitment) -->
+      <path
+        d="M38 35
+           C38 31.6863 40.6863 29 44 29
+           H88
+           C90.6522 29 93.0825 30.499 94.2765 32.868
+           L87 47
+           C86.125 48.75 84.3 50 82.25 50
+           H58
+           V93
+           C58 95.7614 55.7614 98 53 98
+           H43
+           C40.2386 98 38 95.7614 38 93
+           Z"
+        fill="url(#tealGrad)"
+      />
+
+      <!-- Middle Bar (Party 2 Bilateral Stake & Lock) -->
+      <path
+        d="M58 59
+           H79
+           C81.05 59 82.875 60.25 83.75 62
+           L79 72
+           C78 74 76 75.5 73.75 75.5
+           H58
+           Z"
+        fill="url(#cyanGrad)"
+      />
+
+      <!-- Settlement Node (Glowing onchain payout mark) -->
+      <circle cx="86" cy="66" r="3" fill="#FFFFFF" />
+      <circle cx="86" cy="66" r="6" fill="#5BFFC6" fill-opacity="0.7" />
+      <circle cx="86" cy="66" r="10" fill="#2EE6A6" fill-opacity="0.25" />
+    </svg>
+  </div>
+</body>
+</html>

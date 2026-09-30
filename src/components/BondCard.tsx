@@ -77,16 +77,22 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   );
 }
 
+import { useNetwork } from "@/context/NetworkContext";
+
 export function BondCard({ bond }: { bond: BondSummary }) {
   const status = getStatus(bond);
   const hasJoiner = bond.joiner && bond.joiner !== "0x0000000000000000000000000000000000000000";
+  const { isTestnet } = useNetwork();
 
   return (
-    <Link href={`/faza/${bond.id}`} style={{ textDecoration: "none", display: "block" }}>
+    <Link
+      href={`/faza/${bond.id}${isTestnet ? "?network=testnet" : ""}`}
+      style={{ textDecoration: "none", display: "block" }}
+    >
       <article
         style={{
           background: "var(--surface)",
-          border: "1px solid var(--border)",
+          border: isTestnet ? "1px solid rgba(245, 166, 35, 0.25)" : "1px solid var(--border)",
           borderRadius: "var(--radius-card)",
           padding: "1.1rem 1.25rem",
           display: "flex",
@@ -96,22 +102,41 @@ export function BondCard({ bond }: { bond: BondSummary }) {
           transition: "border-color 0.15s, background 0.15s",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "var(--border-strong)";
+          e.currentTarget.style.borderColor = isTestnet ? "var(--amber)" : "var(--border-strong)";
           e.currentTarget.style.background = "#13181F";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
+          e.currentTarget.style.borderColor = isTestnet ? "rgba(245, 166, 35, 0.25)" : "var(--border)";
           e.currentTarget.style.background = "var(--surface)";
         }}
       >
-        {/* Top row: title + pill */}
+        {/* Top row: title + pills */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <h3
-            className="display"
-            style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)", margin: 0, flex: 1 }}
-          >
-            {bond.title}
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, flexWrap: "wrap" }}>
+            {isTestnet && (
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  padding: "1px 6px",
+                  borderRadius: 4,
+                  background: "rgba(245, 166, 35, 0.15)",
+                  color: "var(--amber)",
+                  border: "1px solid rgba(245, 166, 35, 0.35)",
+                }}
+              >
+                TESTNET
+              </span>
+            )}
+            <h3
+              className="display"
+              style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)", margin: 0 }}
+            >
+              {bond.title}
+            </h3>
+          </div>
           <Pill {...status} />
         </div>
 
