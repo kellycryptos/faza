@@ -66,7 +66,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
             whiteSpace: "nowrap",
           }}
         >
-          {isMainnet ? "ARC MAINNET" : "TESTNET SANDBOX"}
+          {isMainnet ? "ARC MAINNET" : "ARC TESTNET SANDBOX"}
         </span>
         <svg
           width="10"
@@ -218,7 +218,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
                   gap: 6,
                 }}
               >
-                Arc Testnet
+                Arc Testnet Sandbox
                 <span
                   style={{
                     fontSize: "0.6rem",

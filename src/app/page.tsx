@@ -314,40 +314,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Network View Switcher directly on page */}
-        <div style={{ display: "flex", background: "var(--surface)", border: isTestnet ? "1px solid rgba(245, 166, 35, 0.4)" : "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
-          <button
-            onClick={() => setNetwork("mainnet")}
-            title="Switch view to Arc Mainnet (Production)"
-            style={{
-              background: isMainnet ? "rgba(46, 230, 166, 0.15)" : "transparent",
-              color: isMainnet ? "var(--accent)" : "var(--muted)",
-              border: isMainnet ? "1px solid rgba(46, 230, 166, 0.3)" : "1px solid transparent",
-              borderRadius: 8, padding: "0.35rem 0.75rem",
-              fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-              display: "flex", alignItems: "center", gap: 5,
-            }}
-          >
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: isMainnet ? "var(--accent)" : "var(--border-strong)", boxShadow: isMainnet ? "0 0 6px var(--accent-glow)" : "none" }} />
-            Mainnet
-          </button>
-          <button
-            onClick={() => setNetwork("testnet")}
-            title="Switch view to Arc Testnet (Sandbox)"
-            style={{
-              background: isTestnet ? "rgba(245, 166, 35, 0.18)" : "transparent",
-              color: isTestnet ? "var(--amber)" : "var(--muted)",
-              border: isTestnet ? "1px solid rgba(245, 166, 35, 0.4)" : "1px solid transparent",
-              borderRadius: 8, padding: "0.35rem 0.75rem",
-              fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-              display: "flex", alignItems: "center", gap: 5,
-            }}
-          >
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: isTestnet ? "var(--amber)" : "var(--border-strong)", boxShadow: isTestnet ? "0 0 6px rgba(245, 166, 35, 0.6)" : "none" }} />
-            Testnet Sandbox
-          </button>
-        </div>
-
         {/* Search */}
         <input
           value={search}

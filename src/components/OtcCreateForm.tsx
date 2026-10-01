@@ -8,6 +8,8 @@ import {
 } from "@/lib/arc";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
 
+import { useNetwork } from "@/context/NetworkContext";
+
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
 interface Props { onCreated: () => void; }
@@ -17,9 +19,10 @@ type Step = "idle" | "approving" | "approve-wait" | "submitting" | "tx-wait" | "
 export function OtcCreateForm({ onCreated }: Props) {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
+  const { chainId: effectiveChainId, isTestnet } = useNetwork();
   const onArc = isSupportedChain(chainId);
-  const contractAddr = getFazaOtcAddress(chainId) ?? FAZAOTC_ADDRESS;
-  const targetChain = onArc ? chainId! : activeChain.id;
+  const targetChain = effectiveChainId;
+  const contractAddr = getFazaOtcAddress(targetChain) ?? FAZAOTC_ADDRESS;
 
   const [title, setTitle] = useState("");
   const [termSheet, setTermSheet] = useState("");

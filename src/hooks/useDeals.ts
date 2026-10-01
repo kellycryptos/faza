@@ -21,20 +21,39 @@ export function useDeals(count: number, chainId?: number) {
 
   const deals: DealSummary[] = (data ?? []).flatMap((r, i) => {
     if (r.status !== "success" || !r.result) return [];
-    const d = r.result as {
-      seller: `0x${string}`; buyer: `0x${string}`; termsHash: `0x${string}`;
-      asset: `0x${string}`; size: bigint; priceUsdc: bigint; stake: bigint;
-      deadline: bigint; sellerAttested: boolean; buyerAttested: boolean;
-      sellerDone: boolean; buyerDone: boolean; settled: boolean; state: number;
-    };
-    if (d.seller === "0x0000000000000000000000000000000000000000") return [];
+    const d = r.result as any;
+    const seller = (d.seller ?? d[0]) as `0x${string}`;
+    const buyer = (d.buyer ?? d[1]) as `0x${string}`;
+    const termsHash = (d.termsHash ?? d[2]) as `0x${string}`;
+    const asset = (d.asset ?? d[3]) as `0x${string}`;
+    const size = (d.size ?? d[4] ?? 0n) as bigint;
+    const priceUsdc = (d.priceUsdc ?? d[5] ?? 0n) as bigint;
+    const stake = (d.stake ?? d[6] ?? 0n) as bigint;
+    const deadline = Number(d.deadline ?? d[7] ?? 0);
+    const sellerAttested = Boolean(d.sellerAttested ?? d[8]);
+    const buyerAttested = Boolean(d.buyerAttested ?? d[9]);
+    const sellerDone = Boolean(d.sellerDone ?? d[10]);
+    const buyerDone = Boolean(d.buyerDone ?? d[11]);
+    const settled = Boolean(d.settled ?? d[12]);
+    const state = Number(d.state ?? d[13] ?? 0);
+
+    if (!seller || seller === "0x0000000000000000000000000000000000000000") return [];
     return [{
-      id: i, seller: d.seller, buyer: d.buyer, termsHash: d.termsHash,
-      asset: d.asset, size: d.size.toString(), priceUsdc: d.priceUsdc.toString(),
-      stake: d.stake.toString(), deadline: Number(d.deadline),
-      sellerAttested: d.sellerAttested, buyerAttested: d.buyerAttested,
-      sellerDone: d.sellerDone, buyerDone: d.buyerDone,
-      settled: d.settled, state: Number(d.state),
+      id: i,
+      seller,
+      buyer,
+      termsHash,
+      asset,
+      size: size.toString(),
+      priceUsdc: priceUsdc.toString(),
+      stake: stake.toString(),
+      deadline,
+      sellerAttested,
+      buyerAttested,
+      sellerDone,
+      buyerDone,
+      settled,
+      state,
     } satisfies DealSummary];
   }).reverse();
 

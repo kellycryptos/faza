@@ -32,17 +32,25 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
   const bonds: BondSummary[] = (data ?? [])
     .flatMap((r, i) => {
       if (r.status !== "success" || !r.result) return [];
-      const b = r.result as {
-        creator: `0x${string}`; joiner: `0x${string}`;
-        stake: bigint; deadline: bigint; title: string;
-        creatorIn: boolean; joinerIn: boolean; settled: boolean;
-      };
+      const res = r.result as any;
+      const creator = (res.creator ?? res[0]) as `0x${string}`;
+      const joiner = (res.joiner ?? res[1]) as `0x${string}`;
+      const stake = (res.stake ?? res[2] ?? 0n) as bigint;
+      const deadline = Number(res.deadline ?? res[3] ?? 0);
+      const title = (res.title ?? res[4] ?? "") as string;
+      const creatorIn = Boolean(res.creatorIn ?? res[5]);
+      const joinerIn = Boolean(res.joinerIn ?? res[6]);
+      const settled = Boolean(res.settled ?? res[7]);
       return [{
         id: i,
-        creator: b.creator, joiner: b.joiner,
-        stake: b.stake.toString(), deadline: Number(b.deadline),
-        title: b.title, creatorIn: b.creatorIn, joinerIn: b.joinerIn,
-        settled: b.settled,
+        creator,
+        joiner,
+        stake: stake.toString(),
+        deadline,
+        title,
+        creatorIn,
+        joinerIn,
+        settled,
       } satisfies BondSummary];
     })
     .reverse();

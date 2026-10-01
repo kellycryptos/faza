@@ -17,6 +17,7 @@ import {
   isSupportedChain,
 } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
+import { useNetwork } from "@/context/NetworkContext";
 
 interface Props {
   onCreated?: () => void;
@@ -27,6 +28,7 @@ type Step = "idle" | "approving" | "approve-wait" | "creating" | "create-wait" |
 export function CreateForm({ onCreated }: Props) {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
+  const { chainId: effectiveChainId, isTestnet } = useNetwork();
 
   const [title, setTitle] = useState("");
   const [stake, setStake] = useState("1.00");
@@ -38,7 +40,7 @@ export function CreateForm({ onCreated }: Props) {
   const [deadlineForCreate, setDeadlineForCreate] = useState(0n);
 
   const onArc = isSupportedChain(chainId);
-  const targetChain = onArc ? chainId! : activeChain.id;
+  const targetChain = effectiveChainId;
   const contractAddr = getFazaBondAddress(targetChain) ?? FAZABOND_ADDRESS;
 
   const { writeContract: approve, data: approveHash } = useWriteContract();
