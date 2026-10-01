@@ -15,6 +15,7 @@ import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contra
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
 import { ProtocolGuide } from "@/components/ProtocolGuide";
 import { useNetwork } from "@/context/NetworkContext";
+import { BorderBeam } from "border-beam";
 
 type Tab = "bond" | "otc";
 type FilterBond = "all" | "mine" | "open" | "ready";
@@ -143,11 +144,6 @@ export default function HomePage() {
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
-
-      {/* Protocol Quick Guide */}
-      <div style={{ paddingTop: "1.25rem" }}>
-        <ProtocolGuide />
-      </div>
 
       {/* Testnet Sandbox Banner — clearly labels sandbox mode, visible without wallet */}
       {isTestnet && (
@@ -300,24 +296,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* How it works */}
-      <div style={{ marginBottom: "2.5rem" }}>
-        <p style={sectionCap}>How it works</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: "0.65rem", marginTop: "0.75rem" }}>
-          {[
-            "Create a bond or OTC deal with a title, stake, and deadline.",
-            "Second wallet joins and matches the stake.",
-            "Both check in (bond) or attest + confirm done (OTC) before time runs out.",
-            "Settle: refund both — or the one who showed takes the pot.",
-          ].map((text, i) => (
-            <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "0.9rem 1rem", display: "flex", gap: "0.65rem" }}>
-              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--accent)", minWidth: 18 }}>{i + 1}</span>
-              <p style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.5, margin: 0 }}>{text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Tab bar + Network view selector */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", alignItems: "center", flexWrap: "wrap" }}>
         {/* Product Tabs */}
@@ -384,18 +362,27 @@ export default function HomePage() {
         />
 
         <div style={{ flex: 1 }} />
-        <button
-          onClick={() => setComposing(v => !v)}
-          style={{
-            background: isTestnet ? "var(--amber)" : "var(--accent)",
-            color: "#050B14",
-            border: "none", borderRadius: "var(--radius-btn)",
-            padding: "0.45rem 1rem", fontSize: "0.82rem",
-            fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
-          }}
+        <BorderBeam
+          size="pulse-inner"
+          colorVariant={isTestnet ? "sunset" : "ocean"}
+          borderRadius={8}
+          active={!composing}
+          style={{ display: "inline-flex" }}
         >
-          {composing ? "Cancel" : tab === "bond" ? (isTestnet ? "New testnet bond" : "New bond") : (isTestnet ? "New testnet deal" : "New deal")}
-        </button>
+          <button
+            onClick={() => setComposing(v => !v)}
+            style={{
+              background: isTestnet ? "var(--amber)" : "var(--accent)",
+              color: "#050B14",
+              border: "none", borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 1rem", fontSize: "0.82rem",
+              fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {composing ? "Cancel" : tab === "bond" ? (isTestnet ? "New testnet bond" : "New bond") : (isTestnet ? "New testnet deal" : "New deal")}
+          </button>
+        </BorderBeam>
       </div>
 
       {/* Filter pills */}
@@ -467,6 +454,11 @@ export default function HomePage() {
           {filteredDeals.map((d) => <DealCard key={d.id} deal={d} />)}
         </FeedSection>
       )}
+
+      {/* Protocol Guide Section — positioned at the bottom above footer */}
+      <div style={{ marginTop: "3.5rem" }}>
+        <ProtocolGuide />
+      </div>
 
       {/* Footer */}
       <footer style={{

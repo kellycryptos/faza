@@ -9,6 +9,7 @@ import {
   isSupportedChain, getChain, formatUsdc,
 } from "@/lib/arc";
 import { FazaLogo } from "@/components/FazaLogo";
+import { BorderBeam } from "border-beam";
 
 import { useNetwork } from "@/context/NetworkContext";
 
@@ -343,7 +344,116 @@ export function Navbar() {
 
       <UsdcBalance address={address} chainId={activeChainId} />
       <NetworkDropdown walletChainId={walletChainId} />
-      <ConnectButton showBalance={false} chainStatus="none" />
+      <ConnectButton.Custom>
+        {({
+          account,
+          chain,
+          openAccountModal,
+          openChainModal,
+          openConnectModal,
+          mounted,
+        }) => {
+          const ready = mounted;
+          const connected = ready && account && chain;
+
+          if (!ready) {
+            return (
+              <div
+                style={{
+                  height: 34,
+                  width: 110,
+                  borderRadius: "var(--radius-pill)",
+                  background: "var(--surface)",
+                  opacity: 0.5,
+                }}
+              />
+            );
+          }
+
+          if (!connected) {
+            return (
+              <BorderBeam
+                size="pulse-inner"
+                colorVariant="ocean"
+                borderRadius={9999}
+                style={{ display: "inline-flex" }}
+              >
+                <button
+                  onClick={openConnectModal}
+                  type="button"
+                  style={{
+                    background: "var(--accent)",
+                    color: "#050B14",
+                    border: "none",
+                    borderRadius: "var(--radius-pill)",
+                    padding: "0.4rem 0.95rem",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "'Inter', sans-serif",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Connect Wallet
+                </button>
+              </BorderBeam>
+            );
+          }
+
+          if (chain.unsupported) {
+            return (
+              <button
+                onClick={openChainModal}
+                type="button"
+                style={{
+                  background: "rgba(255, 73, 74, 0.15)",
+                  color: "var(--danger)",
+                  border: "1px solid rgba(255, 73, 74, 0.4)",
+                  borderRadius: "var(--radius-pill)",
+                  padding: "0.4rem 0.85rem",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Wrong network
+              </button>
+            );
+          }
+
+          return (
+            <button
+              onClick={openAccountModal}
+              type="button"
+              style={{
+                background: "var(--surface)",
+                color: "var(--ink)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-pill)",
+                padding: "0.35rem 0.85rem",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: "var(--accent)",
+                }}
+              />
+              {account.displayName}
+            </button>
+          );
+        }}
+      </ConnectButton.Custom>
     </header>
   );
 }

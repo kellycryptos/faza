@@ -14,6 +14,7 @@ import {
   getExplorerTx, isSupportedChain,
 } from "@/lib/arc";
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
+import { ThinkingOrb } from "thinking-orbs";
 import type { BondSummary } from "./BondCard";
 
 interface Props {
@@ -25,9 +26,11 @@ type ActionStep = "idle" | "approving" | "approve-wait" | "submitting" | "tx-wai
 
 function TxButton({
   label, busyLabel, disabled, isBusy, onClick, variant = "primary",
+  orbState = "working",
 }: {
   label: string; busyLabel: string; disabled?: boolean;
   isBusy: boolean; onClick: () => void; variant?: "primary" | "ghost";
+  orbState?: "working" | "connecting" | "solving" | "searching";
 }) {
   return (
     <button
@@ -45,9 +48,13 @@ function TxButton({
         fontFamily: "'Inter', sans-serif", fontWeight: 700,
         cursor: isBusy || disabled ? "not-allowed" : "pointer",
         minHeight: 44, transition: "background 0.15s",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
       }}
     >
-      {isBusy ? busyLabel : label}
+      {isBusy && (
+        <ThinkingOrb size={20} state={orbState} theme="dark" color="#2EE6A6" />
+      )}
+      <span>{isBusy ? busyLabel : label}</span>
     </button>
   );
 }
@@ -234,7 +241,8 @@ export function BondActions({ bond, onRefresh }: Props) {
           </div>
           <TxButton label="Claim USDC" busyLabel="Claiming…"
             isBusy={["submitting", "tx-wait"].includes(claimStep)}
-            onClick={handleClaim} />
+            onClick={handleClaim}
+            orbState="connecting" />
         </div>
       )}
 
@@ -245,22 +253,26 @@ export function BondActions({ bond, onRefresh }: Props) {
             busyLabel={joinStep === "approving" ? "Confirm approval…" : joinStep === "approve-wait" ? "Approving…" : "Joining…"}
             isBusy={["approving", "approve-wait", "submitting", "tx-wait"].includes(joinStep)}
             onClick={handleJoin}
+            orbState="solving"
           />
         )}
         {canCheckInNow && (
           <TxButton label="Check In" busyLabel="Checking in…"
             isBusy={["submitting", "tx-wait"].includes(checkInStep)}
-            onClick={handleCheckIn} variant="ghost" />
+            onClick={handleCheckIn} variant="ghost"
+            orbState="working" />
         )}
         {canSettleNow && (
           <TxButton label="Settle" busyLabel="Settling…"
             isBusy={["submitting", "tx-wait"].includes(settleStep)}
-            onClick={handleSettle} variant="ghost" />
+            onClick={handleSettle} variant="ghost"
+            orbState="connecting" />
         )}
         {canCancelNow && (
           <TxButton label="Cancel (reclaim stake)" busyLabel="Cancelling…"
             isBusy={["submitting", "tx-wait"].includes(cancelStep)}
-            onClick={handleCancel} variant="ghost" />
+            onClick={handleCancel} variant="ghost"
+            orbState="working" />
         )}
       </div>
 

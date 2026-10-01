@@ -7,6 +7,7 @@ import {
   activeChain, ARC_USDC_ADDRESS, formatUsdc, getExplorerTx, isSupportedChain,
 } from "@/lib/arc";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, isPvp, type DealSummary } from "@/lib/otc-contract";
+import { ThinkingOrb } from "thinking-orbs";
 
 type Step = "idle" | "approving" | "approve-wait" | "submitting" | "tx-wait" | "done" | "error";
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -129,7 +130,7 @@ export function DealActions({ deal, onRefresh }: { deal: DealSummary; onRefresh:
             <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", letterSpacing: "0.07em", textTransform: "uppercase", margin: 0 }}>Claimable</p>
             <p className="tabular" style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>{formatUsdc(claimableAmt as bigint)}</p>
           </div>
-          <Btn label="Claim USDC" busy={["submitting", "tx-wait"].includes(claimStep)} onClick={() => simpleWrite("claim", setClaimStep, "Claim")} primary />
+          <Btn label="Claim USDC" busy={["submitting", "tx-wait"].includes(claimStep)} busyLabel="Claiming…" orbState="connecting" onClick={() => simpleWrite("claim", setClaimStep, "Claim")} primary />
         </div>
       )}
 
@@ -139,23 +140,24 @@ export function DealActions({ deal, onRefresh }: { deal: DealSummary; onRefresh:
             label={`Join — stake ${formatUsdc(deal.stake)}${pvp ? ` + escrow ${formatUsdc(deal.priceUsdc)}` : ""}`}
             busy={["approving", "approve-wait", "submitting", "tx-wait"].includes(joinStep)}
             busyLabel={joinStep === "approving" ? "Confirm approval…" : joinStep === "approve-wait" ? "Approving…" : "Joining…"}
+            orbState="solving"
             onClick={handleJoin} primary
           />
         )}
         {canAttestNow && (
-          <Btn label="Attest" busy={["submitting", "tx-wait"].includes(attestStep)}
+          <Btn label="Attest" busy={["submitting", "tx-wait"].includes(attestStep)} busyLabel="Attesting…" orbState="working"
             onClick={() => simpleWrite("attest", setAttestStep, "Attest")} />
         )}
         {canConfirmNow && (
-          <Btn label="Confirm done" busy={["submitting", "tx-wait"].includes(doneStep)}
+          <Btn label="Confirm done" busy={["submitting", "tx-wait"].includes(doneStep)} busyLabel="Confirming…" orbState="working"
             onClick={() => simpleWrite("confirmDone", setDoneStep, "ConfirmDone")} />
         )}
         {canSettleNow && (
-          <Btn label="Settle" busy={["submitting", "tx-wait"].includes(settleStep)}
+          <Btn label="Settle" busy={["submitting", "tx-wait"].includes(settleStep)} busyLabel="Settling…" orbState="connecting"
             onClick={() => simpleWrite("settle", setSettleStep, "Settle")} />
         )}
         {canCancelNow && (
-          <Btn label="Cancel (reclaim stake)" busy={["submitting", "tx-wait"].includes(cancelStep)}
+          <Btn label="Cancel (reclaim stake)" busy={["submitting", "tx-wait"].includes(cancelStep)} busyLabel="Cancelling…" orbState="working"
             onClick={() => simpleWrite("cancel", setCancelStep, "Cancel")} />
         )}
       </div>
@@ -172,8 +174,9 @@ export function DealActions({ deal, onRefresh }: { deal: DealSummary; onRefresh:
   );
 }
 
-function Btn({ label, busy, busyLabel, onClick, primary, disabled }: {
+function Btn({ label, busy, busyLabel, onClick, primary, disabled, orbState = "working" }: {
   label: string; busy: boolean; busyLabel?: string; onClick: () => void; primary?: boolean; disabled?: boolean;
+  orbState?: "working" | "connecting" | "solving" | "searching";
 }) {
   return (
     <button onClick={onClick} disabled={busy || disabled} style={{
@@ -183,8 +186,12 @@ function Btn({ label, busy, busyLabel, onClick, primary, disabled }: {
       borderRadius: 10, padding: "0.6rem 1.1rem",
       fontSize: "0.88rem", fontFamily: "'Inter', sans-serif", fontWeight: 700,
       cursor: busy || disabled ? "not-allowed" : "pointer", minHeight: 42,
+      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
     }}>
-      {busy ? (busyLabel ?? "…") : label}
+      {busy && (
+        <ThinkingOrb size={20} state={orbState} theme="dark" color="#2EE6A6" />
+      )}
+      <span>{busy ? (busyLabel ?? "…") : label}</span>
     </button>
   );
 }
