@@ -41,6 +41,7 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
       const creatorIn = Boolean(res.creatorIn ?? res[5]);
       const joinerIn = Boolean(res.joinerIn ?? res[6]);
       const settled = Boolean(res.settled ?? res[7]);
+      if (!creator || creator === "0x0000000000000000000000000000000000000000") return [];
       return [{
         id: i,
         creator,

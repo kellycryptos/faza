@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
@@ -11,8 +12,11 @@ import type { BondSummary } from "@/components/BondCard";
 
 import { useNetwork } from "@/context/NetworkContext";
 
-export default function FazaPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function FazaPage({ params }: { params?: Promise<{ id: string }> }) {
+  const routeParams = useParams();
+  const idFromNav = (routeParams?.id as string) ?? "";
+  const resolved = params ? use(params) : undefined;
+  const id = idFromNav || resolved?.id || "";
   const bondId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [countdown, setCountdown] = useState("");

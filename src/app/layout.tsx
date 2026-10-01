@@ -47,7 +47,8 @@ export const metadata: Metadata = {
     title: "Faza — Show up, or forfeit the stake",
     description:
       "Two-party micro-bonds and OTC tickets settled on Arc Mainnet in USDC.",
-    creator: "@kellycryptos",
+    creator: "@Fazaotc",
+    site: "@Fazaotc",
   },
   robots: {
     index: true,

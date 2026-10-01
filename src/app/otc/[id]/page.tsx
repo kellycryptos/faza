@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
@@ -12,8 +13,11 @@ import { useNetwork } from "@/context/NetworkContext";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-export default function OtcPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function OtcPage({ params }: { params?: Promise<{ id: string }> }) {
+  const routeParams = useParams();
+  const idFromNav = (routeParams?.id as string) ?? "";
+  const resolved = params ? use(params) : undefined;
+  const id = idFromNav || resolved?.id || "";
   const dealId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
