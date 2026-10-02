@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useReadContracts } from "wagmi";
-import { getFazaBondAddress, FAZABOND_ABI, getBondsForNetwork } from "@/lib/contract";
+import { getFazaBondAddress, FAZABOND_ABI, getBondsForNetwork, getLocalBonds, type LocalBondSummary } from "@/lib/contract";
 import type { BondSummary } from "@/components/BondCard";
 
 interface UseBondsResult {
@@ -16,6 +16,23 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
   const contractAddr = getFazaBondAddress(targetChainId);
   const baselineBonds = useMemo(() => getBondsForNetwork(targetChainId), [targetChainId]);
 
+  // Read locally saved user bonds
+  const [localBonds, setLocalBonds] = useState<LocalBondSummary[]>([]);
+  const reloadLocal = useCallback(() => {
+    setLocalBonds(getLocalBonds(targetChainId));
+  }, [targetChainId]);
+
+  useEffect(() => {
+    reloadLocal();
+    const handleUpdate = () => reloadLocal();
+    window.addEventListener("faza_local_update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("faza_local_update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [reloadLocal]);
+
   // Read onchain if count > 0
   const contracts = contractAddr && count > 0
     ? Array.from({ length: count }, (_, i) => ({
@@ -27,11 +44,11 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
       }))
     : [];
 
-  const { data, isLoading, refetch } = useReadContracts({
+  const { data, refetch } = useReadContracts({
     contracts,
     query: {
       enabled: contracts.length > 0 && !!contractAddr,
-      refetchInterval: 8000,
+      refetchInterval: 5000,
     },
   });
 
@@ -64,17 +81,25 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
       .reverse();
   }, [data]);
 
-  // Merge onchain with network-specific baseline bonds:
-  // Onchain bonds take precedence over baseline with matching ID;
-  // All remaining baseline bonds are preserved to ensure at least 10 reasonable bonds are visible!
+  // Merge:
+  // 1. Pending locally created bonds (shown at top immediately)
+  // 2. Confirmed onchain bonds (newest first)
+  // 3. Baseline curated bonds (ensuring at least 10 items visible)
   const bonds = useMemo(() => {
-    if (parsedBonds.length === 0) {
-      return baselineBonds;
-    }
     const onchainIds = new Set(parsedBonds.map((b) => b.id));
-    const remainingBaseline = baselineBonds.filter((b) => !onchainIds.has(b.id));
-    return [...parsedBonds, ...remainingBaseline];
-  }, [parsedBonds, baselineBonds]);
+    const pendingLocal = localBonds.filter((b) => !onchainIds.has(b.id));
+    const allKnownIds = new Set([...parsedBonds.map((b) => b.id), ...pendingLocal.map((b) => b.id)]);
+    const remainingBaseline = baselineBonds.filter((b) => !allKnownIds.has(b.id));
+    return [...pendingLocal, ...parsedBonds, ...remainingBaseline];
+  }, [parsedBonds, localBonds, baselineBonds]);
 
-  return { bonds, isLoading: isLoading && parsedBonds.length === 0, refetch };
+  return {
+    bonds,
+    isLoading: false, // Instant zero-delay presentation: baseline & local bonds are immediately ready
+    refetch: () => {
+      reloadLocal();
+      refetch();
+    },
+  };
 }
+

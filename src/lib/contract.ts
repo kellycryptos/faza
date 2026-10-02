@@ -471,6 +471,42 @@ export const TESTNET_BONDS: GenesisBondSummary[] = [
 /** Backwards-compatible export for Genesis Bond #0 on Arc Mainnet */
 export const MAINNET_GENESIS_BOND: GenesisBondSummary = MAINNET_BONDS[0];
 
+export interface LocalBondSummary extends GenesisBondSummary {
+  txHash?: string;
+  network?: string;
+  createdAt?: number;
+}
+
+const LOCAL_BONDS_KEY = "faza_custom_bonds_v1";
+
+/** Returns any user-created bonds stored locally in browser storage for a network. */
+export function getLocalBonds(chainId?: number): LocalBondSummary[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_BONDS_KEY);
+    if (!raw) return [];
+    const list: LocalBondSummary[] = JSON.parse(raw);
+    const targetNet = chainId === 5042002 ? "testnet" : "mainnet";
+    return list.filter((b) => !b.network || b.network === targetNet);
+  } catch {
+    return [];
+  }
+}
+
+/** Saves a newly created bond to browser local storage so it displays immediately. */
+export function saveLocalBond(bond: LocalBondSummary): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(LOCAL_BONDS_KEY);
+    const list: LocalBondSummary[] = raw ? JSON.parse(raw) : [];
+    const filtered = list.filter((b) => b.id !== bond.id && (!bond.txHash || b.txHash !== bond.txHash));
+    filtered.unshift(bond);
+    localStorage.setItem(LOCAL_BONDS_KEY, JSON.stringify(filtered.slice(0, 50)));
+  } catch (e) {
+    console.error("Failed to save local bond:", e);
+  }
+}
+
 /** Returns all baseline bonds strictly for the specified network (never combined). */
 export function getBondsForNetwork(chainId?: number): GenesisBondSummary[] {
   if (chainId === 5042002) {
@@ -479,8 +515,20 @@ export function getBondsForNetwork(chainId?: number): GenesisBondSummary[] {
   return MAINNET_BONDS;
 }
 
-/** Looks up fallback bond by ID strictly for the specified network. */
+/** Looks up fallback bond by ID: checks local storage first, then target network, then opposite network. */
 export function getFallbackBond(id: number, chainId?: number): GenesisBondSummary | undefined {
+  // 1. Check if user recently created this bond locally
+  const localList = getLocalBonds(chainId);
+  const localMatch = localList.find((b) => b.id === id);
+  if (localMatch) return localMatch;
+
+  // 2. Check baseline for target network
   const list = getBondsForNetwork(chainId);
-  return list.find((b) => b.id === id);
+  const match = list.find((b) => b.id === id);
+  if (match) return match;
+
+  // 3. Fallback to other network baseline in case the link didn't include network parameter
+  const otherList = chainId === 5042002 ? MAINNET_BONDS : TESTNET_BONDS;
+  return otherList.find((b) => b.id === id);
 }
+

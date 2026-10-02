@@ -553,6 +553,44 @@ export const TESTNET_DEALS: DealSummary[] = [
 /** Backwards-compatible export for Genesis Deal #0 on Arc Mainnet */
 export const MAINNET_GENESIS_DEAL: DealSummary = MAINNET_DEALS[0];
 
+export interface LocalDealSummary extends DealSummary {
+  title?: string;
+  termSheet?: string;
+  txHash?: string;
+  network?: string;
+  createdAt?: number;
+}
+
+const LOCAL_DEALS_KEY = "faza_custom_deals_v1";
+
+/** Returns any user-created OTC deals stored locally in browser storage for a network. */
+export function getLocalDeals(chainId?: number): LocalDealSummary[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_DEALS_KEY);
+    if (!raw) return [];
+    const list: LocalDealSummary[] = JSON.parse(raw);
+    const targetNet = chainId === 5042002 ? "testnet" : "mainnet";
+    return list.filter((d) => !d.network || d.network === targetNet);
+  } catch {
+    return [];
+  }
+}
+
+/** Saves a newly created OTC deal to browser local storage so it displays immediately. */
+export function saveLocalDeal(deal: LocalDealSummary): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(LOCAL_DEALS_KEY);
+    const list: LocalDealSummary[] = raw ? JSON.parse(raw) : [];
+    const filtered = list.filter((d) => d.id !== deal.id && (!deal.txHash || d.txHash !== deal.txHash));
+    filtered.unshift(deal);
+    localStorage.setItem(LOCAL_DEALS_KEY, JSON.stringify(filtered.slice(0, 50)));
+  } catch (e) {
+    console.error("Failed to save local deal:", e);
+  }
+}
+
 /** Returns all baseline OTC deals strictly for the specified network (never combined). */
 export function getDealsForNetwork(chainId?: number): DealSummary[] {
   if (chainId === 5042002) {
@@ -561,9 +599,21 @@ export function getDealsForNetwork(chainId?: number): DealSummary[] {
   return MAINNET_DEALS;
 }
 
-/** Looks up fallback deal by ID strictly for the specified network. */
+/** Looks up fallback deal by ID: checks local storage first, then target network, then opposite network. */
 export function getFallbackDeal(id: number, chainId?: number): DealSummary | undefined {
+  // 1. Check if user recently created this deal locally
+  const localList = getLocalDeals(chainId);
+  const localMatch = localList.find((d) => d.id === id);
+  if (localMatch) return localMatch;
+
+  // 2. Check baseline for target network
   const list = getDealsForNetwork(chainId);
-  return list.find((d) => d.id === id);
+  const match = list.find((d) => d.id === id);
+  if (match) return match;
+
+  // 3. Fallback to other network baseline in case the link didn't include network parameter
+  const otherList = chainId === 5042002 ? MAINNET_DEALS : TESTNET_DEALS;
+  return otherList.find((d) => d.id === id);
 }
+
 

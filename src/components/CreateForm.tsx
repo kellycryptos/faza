@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   useAccount,
   useSwitchChain,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useReadContract,
 } from "wagmi";
 import { erc20Abi } from "viem";
 import {
@@ -16,7 +18,7 @@ import {
   getExplorerTx,
   isSupportedChain,
 } from "@/lib/arc";
-import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
+import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress, saveLocalBond } from "@/lib/contract";
 import { useNetwork } from "@/context/NetworkContext";
 
 interface Props {
@@ -31,17 +33,28 @@ export function CreateForm({ onCreated }: Props) {
   const { chainId: effectiveChainId, isTestnet } = useNetwork();
 
   const [title, setTitle] = useState("");
+  const [submittedTitle, setSubmittedTitle] = useState("");
   const [stake, setStake] = useState("1.00");
   const [hoursAhead, setHoursAhead] = useState("24");
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState("");
   const [doneTxHash, setDoneTxHash] = useState<`0x${string}` | undefined>();
+  const [createdBondId, setCreatedBondId] = useState<number | undefined>();
+  const [copied, setCopied] = useState(false);
   const [stakeRawForCreate, setStakeRawForCreate] = useState(0n);
   const [deadlineForCreate, setDeadlineForCreate] = useState(0n);
 
   const onArc = isSupportedChain(chainId);
   const targetChain = effectiveChainId;
   const contractAddr = getFazaBondAddress(targetChain) ?? FAZABOND_ADDRESS;
+
+  const { data: currentBondCount } = useReadContract({
+    address: contractAddr,
+    abi: FAZABOND_ABI,
+    functionName: "bondCount",
+    chainId: targetChain,
+    query: { enabled: !!contractAddr },
+  });
 
   const { writeContract: approve, data: approveHash } = useWriteContract();
   const { isSuccess: approveOk } = useWaitForTransactionReceipt({ hash: approveHash });
@@ -83,14 +96,37 @@ export function CreateForm({ onCreated }: Props) {
 
   useEffect(() => {
     if (createOk && step === "create-wait" && createHash) {
+      const newId = currentBondCount !== undefined ? Number(currentBondCount) : 0;
+      setCreatedBondId(newId);
       setDoneTxHash(createHash);
+
+      // Optimistically save bond locally so it appears immediately on reload & in feeds
+      if (address) {
+        saveLocalBond({
+          id: newId,
+          creator: address,
+          joiner: "0x0000000000000000000000000000000000000000",
+          stake: stakeRawForCreate.toString(),
+          deadline: Number(deadlineForCreate),
+          title: submittedTitle || title.trim(),
+          creatorIn: false,
+          joinerIn: false,
+          settled: false,
+          txHash: createHash,
+          network: isTestnet ? "testnet" : "mainnet",
+        });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("faza_local_update"));
+        }
+      }
+
       setStep("done");
       setTitle("");
       setStake("1.00");
       setHoursAhead("24");
       onCreated?.();
     }
-  }, [createOk, step, createHash, onCreated]);
+  }, [createOk, step, createHash, address, currentBondCount, deadlineForCreate, isTestnet, onCreated, stakeRawForCreate, submittedTitle, title]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +147,7 @@ export function CreateForm({ onCreated }: Props) {
     if (!title.trim()) { setError("Title required."); return; }
 
     setError("");
+    setSubmittedTitle(title.trim());
     setStakeRawForCreate(stakeRaw);
     setDeadlineForCreate(BigInt(Math.floor(Date.now() / 1000) + hours * 3600));
     setStep("approving");
@@ -159,31 +196,157 @@ export function CreateForm({ onCreated }: Props) {
   };
 
   if (step === "done" && doneTxHash) {
+    const bondUrl = `/faza/${createdBondId ?? 0}${isTestnet ? "?network=testnet" : ""}`;
+    const fullShareUrl = typeof window !== "undefined" ? `${window.location.origin}${bondUrl}` : "";
+    const tweetText = `I just created a show-up bond on Arc: "${submittedTitle}". Stake and match me: ${fullShareUrl} via @fazaotc`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        <p style={{ color: "var(--accent)", fontWeight: 600, fontSize: "0.95rem" }}>
-          Bond created. Share the link so someone joins.
-        </p>
-        <a
-          href={getExplorerTx(doneTxHash, targetChain)}
-          target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: "0.82rem", color: "var(--accent)", fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          {doneTxHash.slice(0, 22)}… (explorer)
-        </a>
-        <button
-          onClick={() => setStep("idle")}
-          style={{
-            background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8,
-            padding: "0.5rem 1rem", color: "var(--muted)", fontSize: "0.85rem",
-            fontFamily: "'Inter', sans-serif", cursor: "pointer", alignSelf: "flex-start",
-          }}
-        >
-          Create another
-        </button>
+      <div style={{
+        background: "linear-gradient(135deg, rgba(46, 230, 166, 0.08) 0%, rgba(20, 32, 48, 0.5) 100%)",
+        border: "1px solid rgba(46, 230, 166, 0.4)",
+        borderRadius: "var(--radius-card)",
+        padding: "1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.1rem",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 10,
+            background: "rgba(46, 230, 166, 0.18)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.3rem", flexShrink: 0,
+          }}>
+            🎉
+          </div>
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+              Bond #{createdBondId ?? 0} Created Successfully!
+            </h3>
+            <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "4px 0 0" }}>
+              Your stake is locked. This bond is now live at the top of the feed and in My Bonds.
+            </p>
+          </div>
+        </div>
+
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+          padding: "0.85rem 1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+        }}>
+          <div>
+            <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)" }}>{submittedTitle}</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
+              Stake: {formatUsdc(stakeRawForCreate)} · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}
+            </div>
+          </div>
+          <Link
+            href={bondUrl}
+            style={{
+              background: "var(--accent)",
+              color: "#050B14",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 1rem",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            View Bond Page →
+          </Link>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (fullShareUrl) {
+                navigator.clipboard.writeText(fullShareUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }
+            }}
+            style={{
+              background: copied ? "rgba(46,230,166,0.15)" : "var(--surface)",
+              color: copied ? "var(--accent)" : "var(--ink)",
+              border: `1px solid ${copied ? "var(--accent)" : "var(--border)"}`,
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 0.9rem",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {copied ? "✓ Link Copied!" : "🔗 Copy Share Link"}
+          </button>
+
+          <a
+            href={tweetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: "var(--surface)",
+              color: "var(--ink)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 0.9rem",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            Share on 𝕏
+          </a>
+
+          <a
+            href={getExplorerTx(doneTxHash, targetChain)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: "0.78rem",
+              color: "var(--subtle)",
+              marginLeft: "auto",
+              textDecoration: "none",
+            }}
+          >
+            Explorer receipt ↗
+          </a>
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", display: "flex", gap: "0.75rem" }}>
+          <button
+            type="button"
+            onClick={() => setStep("idle")}
+            style={{
+              background: "transparent",
+              color: "var(--muted)",
+              border: "none",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+            }}
+          >
+            + Create another bond
+          </button>
+        </div>
       </div>
     );
   }
+
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

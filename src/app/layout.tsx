@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://faza-v1.vercel.app"),
@@ -65,8 +66,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Web3Provider>
-          <Navbar />
-          <main style={{ paddingTop: "60px" }}>{children}</main>
+          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+            <Navbar />
+            <main style={{ paddingTop: "60px", flex: 1 }}>{children}</main>
+            <Footer />
+          </div>
         </Web3Provider>
       </body>
     </html>

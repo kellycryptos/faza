@@ -79,10 +79,10 @@ a { color: inherit; }
 .footer-link {
   color: var(--muted);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 .footer-link:hover {
-  color: var(--ink);
+  color: var(--accent);
 }
 
 /* Scrollbar */

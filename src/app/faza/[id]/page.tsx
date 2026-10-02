@@ -12,15 +12,15 @@ import type { BondSummary } from "@/components/BondCard";
 
 import { useNetwork } from "@/context/NetworkContext";
 
-export default function FazaPage({ params }: { params?: Promise<{ id: string }> }) {
+export default function FazaPage() {
   const routeParams = useParams();
-  const id = (routeParams?.id as string) ?? "";
-  const bondId = parseInt(id, 10);
+  const idStr = (routeParams?.id as string) || (typeof window !== "undefined" ? window.location.pathname.split("/").pop() || "" : "");
+  const bondId = parseInt(idStr, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [copied, setCopied] = useState(false);
   const { chainId: walletChainId } = useAccount();
-  const { chainId: effectiveChainId, isTestnet } = useNetwork();
+  const { chainId: effectiveChainId, isTestnet, setNetwork } = useNetwork();
   const contractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
   const fallback = !isNaN(bondId) ? getFallbackBond(bondId, effectiveChainId) : undefined;
 
@@ -30,7 +30,7 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
     functionName: "getBond",
     args: [BigInt(isNaN(bondId) ? 0 : bondId)],
     chainId: effectiveChainId,
-    query: { enabled: !!contractAddr && !isNaN(bondId), refetchInterval: 6000 },
+    query: { enabled: !!contractAddr && !isNaN(bondId), refetchInterval: 5000 },
   });
 
   useEffect(() => { if (refreshKey > 0) refetch(); }, [refreshKey, refetch]);
@@ -63,30 +63,67 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
   }, [b]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
   };
 
-  if (isNaN(bondId)) return <Wrapper><p style={{ color: "var(--subtle)" }}>Invalid bond ID.</p></Wrapper>;
-  if (!contractAddr) return <Wrapper><p style={{ color: "var(--subtle)" }}>Contract not deployed yet.</p></Wrapper>;
-
-  if (isLoading && !b) {
+  if (isNaN(bondId)) {
     return (
       <Wrapper>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
-          <div style={{ width: "60%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
-          <div style={{ height: 120, background: "var(--surface)", borderRadius: "var(--radius-card)", opacity: 0.5, animation: "pulse 1.5s infinite" }} />
-        </div>
+        <Link href={`/${isTestnet ? "?network=testnet" : ""}`} style={{ fontSize: "0.82rem", color: "var(--muted)", textDecoration: "none" }}>
+          ← Back to all bonds
+        </Link>
+        <p style={{ color: "var(--subtle)", marginTop: "1rem" }}>Invalid bond ID.</p>
       </Wrapper>
     );
   }
 
   if (!b || b.creator === "0x0000000000000000000000000000000000000000") {
-    return <Wrapper><p style={{ color: "var(--subtle)" }}>Bond #{bondId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrapper>;
+    if (isLoading) {
+      return (
+        <Wrapper>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+            <div style={{ width: "60%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+            <div style={{ height: 120, background: "var(--surface)", borderRadius: "var(--radius-card)", opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+          </div>
+        </Wrapper>
+      );
+    }
+    return (
+      <Wrapper>
+        <Link href={`/${isTestnet ? "?network=testnet" : ""}`} style={{ fontSize: "0.82rem", color: "var(--muted)", textDecoration: "none" }}>
+          ← Back to all {isTestnet ? "testnet " : ""}bonds
+        </Link>
+        <div style={{
+          background: "var(--surface)", border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)", padding: "2rem", textAlign: "center", marginTop: "1rem",
+        }}>
+          <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
+            Bond #{bondId} Not Found
+          </h2>
+          <p style={{ color: "var(--subtle)", fontSize: "0.85rem", marginBottom: "1.25rem" }}>
+            This bond was not found on {isTestnet ? "Arc Testnet (5042002)" : "Arc Mainnet (5042)"}. It may exist on the other network.
+          </p>
+          <button
+            onClick={() => setNetwork(isTestnet ? "mainnet" : "testnet")}
+            style={{
+              background: "var(--accent)", color: "#050B14", border: "none",
+              borderRadius: "var(--radius-btn)", padding: "0.5rem 1.1rem",
+              fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Switch to {isTestnet ? "Arc Mainnet" : "Arc Testnet"} ↗
+          </button>
+        </div>
+      </Wrapper>
+    );
   }
+
 
   const bond: BondSummary = {
     id: bondId, creator: b.creator, joiner: b.joiner, stake: b.stake.toString(),

@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
 import { erc20Abi, keccak256, toBytes } from "viem";
 import {
-  activeChain, ARC_USDC_ADDRESS, parseUsdcAmount, getExplorerTx, isSupportedChain,
+  activeChain, ARC_USDC_ADDRESS, parseUsdcAmount, formatUsdc, getExplorerTx, isSupportedChain,
 } from "@/lib/arc";
-import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, saveLocalDeal } from "@/lib/otc-contract";
 
 import { useNetwork } from "@/context/NetworkContext";
 
@@ -25,6 +26,7 @@ export function OtcCreateForm({ onCreated }: Props) {
   const contractAddr = getFazaOtcAddress(targetChain) ?? FAZAOTC_ADDRESS;
 
   const [title, setTitle] = useState("");
+  const [submittedTitle, setSubmittedTitle] = useState("");
   const [termSheet, setTermSheet] = useState("");
   const [assetAddr, setAssetAddr] = useState("");
   const [size, setSize] = useState("");
@@ -34,6 +36,8 @@ export function OtcCreateForm({ onCreated }: Props) {
   const [step, setStep] = useState<Step>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [lastTx, setLastTx] = useState<`0x${string}` | undefined>();
+  const [createdDealId, setCreatedDealId] = useState<number | undefined>();
+  const [copied, setCopied] = useState(false);
   // Capture args at submit time, not at write time
   const [createArgs, setCreateArgs] = useState<{
     termsHash: `0x${string}`; asset: `0x${string}`;
@@ -46,6 +50,14 @@ export function OtcCreateForm({ onCreated }: Props) {
   const stakeRaw = parseUsdcAmount(stakeUsdc);
   const priceRaw = parseUsdcAmount(priceUsdc);
   const sizeRaw = size ? BigInt(Math.round(parseFloat(size) * 1e6)) : 0n;
+
+  const { data: currentDealCount } = useReadContract({
+    address: contractAddr,
+    abi: FAZAOTC_ABI,
+    functionName: "dealCount",
+    chainId: targetChain,
+    query: { enabled: !!contractAddr },
+  });
 
   const { writeContract: approve, data: approveHash } = useWriteContract();
   const { isSuccess: approveOk } = useWaitForTransactionReceipt({ hash: approveHash });
@@ -80,11 +92,42 @@ export function OtcCreateForm({ onCreated }: Props) {
 
   useEffect(() => {
     if (txOk && step === "tx-wait") {
+      const newId = currentDealCount !== undefined ? Number(currentDealCount) : 0;
+      setCreatedDealId(newId);
       if (txHash) setLastTx(txHash);
+
+      if (address && createArgs) {
+        saveLocalDeal({
+          id: newId,
+          seller: address,
+          buyer: "0x0000000000000000000000000000000000000000",
+          termsHash: createArgs.termsHash,
+          asset: createArgs.asset,
+          size: createArgs.sizeRaw.toString(),
+          priceUsdc: createArgs.priceRaw.toString(),
+          stake: createArgs.stakeRaw.toString(),
+          deadline: Number(createArgs.deadlineSecs),
+          sellerAttested: true,
+          buyerAttested: false,
+          sellerDone: false,
+          buyerDone: false,
+          settled: false,
+          state: 0,
+          title: submittedTitle || title.trim(),
+          termSheet,
+          txHash,
+          network: isTestnet ? "testnet" : "mainnet",
+        });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("faza_local_deal_update"));
+        }
+      }
+
       setStep("done");
       onCreated();
     }
-  }, [txOk, step, txHash, onCreated]);
+  }, [txOk, step, txHash, onCreated, address, createArgs, currentDealCount, isTestnet, submittedTitle, termSheet, title]);
+
 
   const valid = title.trim() && termSheet.trim() && priceRaw > 0n && stakeRaw >= 10_000n && sizeRaw > 0n;
 
@@ -93,6 +136,7 @@ export function OtcCreateForm({ onCreated }: Props) {
     if (!onArc) { switchChain({ chainId: activeChain.id }); return; }
     if (!valid) { setErrorMsg("Fill in all fields."); return; }
     setErrorMsg("");
+    setSubmittedTitle(title.trim());
     const args = {
       termsHash,
       asset: (isPvp ? assetAddr : ZERO_ADDR) as `0x${string}`,
@@ -117,6 +161,165 @@ export function OtcCreateForm({ onCreated }: Props) {
   };
 
   const isBusy = ["approving", "approve-wait", "submitting", "tx-wait"].includes(step);
+
+  if (step === "done" && lastTx) {
+    const dealUrl = `/otc/${createdDealId ?? 0}${isTestnet ? "?network=testnet" : ""}`;
+    const fullShareUrl = typeof window !== "undefined" ? `${window.location.origin}${dealUrl}` : "";
+    const tweetText = `I just opened an OTC deal on Arc: "${submittedTitle}". Stake and join counterparty escrow: ${fullShareUrl} via @fazaotc`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
+    return (
+      <div style={{
+        background: "linear-gradient(135deg, rgba(46, 230, 166, 0.08) 0%, rgba(20, 32, 48, 0.5) 100%)",
+        border: "1px solid rgba(46, 230, 166, 0.4)",
+        borderRadius: "var(--radius-card)",
+        padding: "1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.1rem",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 10,
+            background: "rgba(46, 230, 166, 0.18)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.3rem", flexShrink: 0,
+          }}>
+            🤝
+          </div>
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+              OTC Deal #{createdDealId ?? 0} Created Successfully!
+            </h3>
+            <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "4px 0 0" }}>
+              Your stake is deposited. This deal is now visible at the top of the feed and in My Deals.
+            </p>
+          </div>
+        </div>
+
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+          padding: "0.85rem 1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+        }}>
+          <div>
+            <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)" }}>{submittedTitle}</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
+              Price: {formatUsdc(priceRaw)} · Stake: {formatUsdc(stakeRaw)} · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}
+            </div>
+          </div>
+          <Link
+            href={dealUrl}
+            style={{
+              background: "var(--accent)",
+              color: "#050B14",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 1rem",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            View Deal Page →
+          </Link>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (fullShareUrl) {
+                navigator.clipboard.writeText(fullShareUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }
+            }}
+            style={{
+              background: copied ? "rgba(46,230,166,0.15)" : "var(--surface)",
+              color: copied ? "var(--accent)" : "var(--ink)",
+              border: `1px solid ${copied ? "var(--accent)" : "var(--border)"}`,
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 0.9rem",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {copied ? "✓ Link Copied!" : "🔗 Copy Share Link"}
+          </button>
+
+          <a
+            href={tweetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: "var(--surface)",
+              color: "var(--ink)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.45rem 0.9rem",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            Share on 𝕏
+          </a>
+
+          <a
+            href={getExplorerTx(lastTx, targetChain)}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: "0.78rem",
+              color: "var(--subtle)",
+              marginLeft: "auto",
+              textDecoration: "none",
+            }}
+          >
+            Explorer receipt ↗
+          </a>
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", display: "flex", gap: "0.75rem" }}>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("idle");
+              setTitle("");
+              setTermSheet("");
+              setPriceUsdc("");
+              setSize("");
+            }}
+            style={{
+              background: "transparent",
+              color: "var(--muted)",
+              border: "none",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+            }}
+          >
+            + Create another deal
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>

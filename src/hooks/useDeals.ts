@@ -1,13 +1,37 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useReadContracts } from "wagmi";
-import { getFazaOtcAddress, FAZAOTC_ABI, getDealsForNetwork, type DealSummary } from "@/lib/otc-contract";
+import {
+  getFazaOtcAddress,
+  FAZAOTC_ABI,
+  getDealsForNetwork,
+  getLocalDeals,
+  type DealSummary,
+  type LocalDealSummary,
+} from "@/lib/otc-contract";
 
 export function useDeals(count: number, chainId?: number) {
   const targetChainId = chainId === 5042002 ? 5042002 : 5042;
   const contractAddr = getFazaOtcAddress(targetChainId);
   const baselineDeals = useMemo(() => getDealsForNetwork(targetChainId), [targetChainId]);
+
+  // Read locally saved user deals
+  const [localDeals, setLocalDeals] = useState<LocalDealSummary[]>([]);
+  const reloadLocal = useCallback(() => {
+    setLocalDeals(getLocalDeals(targetChainId));
+  }, [targetChainId]);
+
+  useEffect(() => {
+    reloadLocal();
+    const handleUpdate = () => reloadLocal();
+    window.addEventListener("faza_local_deal_update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("faza_local_deal_update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [reloadLocal]);
 
   const ids = Array.from({ length: count }, (_, i) => i);
 
@@ -21,11 +45,11 @@ export function useDeals(count: number, chainId?: number) {
       }))
     : [];
 
-  const { data, isLoading, refetch } = useReadContracts({
+  const { data, refetch } = useReadContracts({
     contracts,
     query: {
       enabled: contracts.length > 0 && !!contractAddr,
-      refetchInterval: 8000,
+      refetchInterval: 5000,
     },
   });
 
@@ -69,17 +93,25 @@ export function useDeals(count: number, chainId?: number) {
     }).reverse();
   }, [data]);
 
-  // Merge onchain with network-specific baseline deals:
-  // Onchain deals take precedence over baseline with matching ID;
-  // All remaining baseline deals are preserved to ensure at least 10 reasonable deals are visible!
+  // Merge:
+  // 1. Pending locally created deals (shown at top immediately)
+  // 2. Confirmed onchain deals (newest first)
+  // 3. Baseline curated deals (ensuring at least 10 items visible)
   const deals = useMemo(() => {
-    if (parsedDeals.length === 0) {
-      return baselineDeals;
-    }
     const onchainIds = new Set(parsedDeals.map((d) => d.id));
-    const remainingBaseline = baselineDeals.filter((d) => !onchainIds.has(d.id));
-    return [...parsedDeals, ...remainingBaseline];
-  }, [parsedDeals, baselineDeals]);
+    const pendingLocal = localDeals.filter((d) => !onchainIds.has(d.id));
+    const allKnownIds = new Set([...parsedDeals.map((d) => d.id), ...pendingLocal.map((d) => d.id)]);
+    const remainingBaseline = baselineDeals.filter((d) => !allKnownIds.has(d.id));
+    return [...pendingLocal, ...parsedDeals, ...remainingBaseline];
+  }, [parsedDeals, localDeals, baselineDeals]);
 
-  return { deals, isLoading: isLoading && parsedDeals.length === 0, refetch };
+  return {
+    deals,
+    isLoading: false, // Instant zero-delay presentation: baseline & local deals are immediately ready
+    refetch: () => {
+      reloadLocal();
+      refetch();
+    },
+  };
 }
+

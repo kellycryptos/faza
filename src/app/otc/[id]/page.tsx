@@ -13,14 +13,14 @@ import { useNetwork } from "@/context/NetworkContext";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-export default function OtcPage({ params }: { params?: Promise<{ id: string }> }) {
+export default function OtcPage() {
   const routeParams = useParams();
-  const id = (routeParams?.id as string) ?? "";
-  const dealId = parseInt(id, 10);
+  const idStr = (routeParams?.id as string) || (typeof window !== "undefined" ? window.location.pathname.split("/").pop() || "" : "");
+  const dealId = parseInt(idStr, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const { chainId: walletChainId } = useAccount();
-  const { chainId: effectiveChainId, isTestnet } = useNetwork();
+  const { chainId: effectiveChainId, isTestnet, setNetwork } = useNetwork();
   const contractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
   const fallback = !isNaN(dealId) ? getFallbackDeal(dealId, effectiveChainId) : undefined;
 
@@ -29,20 +29,30 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
     abi: FAZAOTC_ABI, functionName: "getDeal",
     args: [BigInt(isNaN(dealId) ? 0 : dealId)],
     chainId: effectiveChainId,
-    query: { enabled: !!contractAddr && !isNaN(dealId), refetchInterval: 6000 },
+    query: { enabled: !!contractAddr && !isNaN(dealId), refetchInterval: 5000 },
   });
 
   useEffect(() => { if (refreshKey > 0) refetch(); }, [refreshKey, refetch]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
   };
 
-  if (isNaN(dealId)) return <Wrap><p style={{ color: "var(--subtle)" }}>Invalid deal ID.</p></Wrap>;
-  if (!contractAddr) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
+  if (isNaN(dealId)) {
+    return (
+      <Wrap>
+        <Link href={`/${isTestnet ? "?network=testnet" : ""}`} style={{ fontSize: "0.82rem", color: "var(--muted)", textDecoration: "none" }}>
+          ← Back to all deals
+        </Link>
+        <p style={{ color: "var(--subtle)", marginTop: "1rem" }}>Invalid deal ID.</p>
+      </Wrap>
+    );
+  }
 
   const d = (raw && (raw as any).seller && (raw as any).seller !== ZERO)
     ? (raw as {
@@ -71,21 +81,48 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
       }
     : undefined;
 
-  if (isLoading && !d) {
+  if (!d || d.seller === ZERO) {
+    if (isLoading) {
+      return (
+        <Wrap>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+            <div style={{ width: "50%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+            <div style={{ height: 100, background: "var(--surface)", borderRadius: 10, opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+          </div>
+        </Wrap>
+      );
+    }
     return (
       <Wrap>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ width: 90, height: 20, background: "var(--surface)", borderRadius: 4, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
-          <div style={{ width: "50%", height: 36, background: "var(--surface)", borderRadius: 6, opacity: 0.6, animation: "pulse 1.5s infinite" }} />
-          <div style={{ height: 100, background: "var(--surface)", borderRadius: 10, opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+        <Link href={`/${isTestnet ? "?network=testnet" : ""}`} style={{ fontSize: "0.82rem", color: "var(--muted)", textDecoration: "none" }}>
+          ← Back to all {isTestnet ? "testnet " : ""}deals
+        </Link>
+        <div style={{
+          background: "var(--surface)", border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)", padding: "2rem", textAlign: "center", marginTop: "1rem",
+        }}>
+          <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
+            Deal #{dealId} Not Found
+          </h2>
+          <p style={{ color: "var(--subtle)", fontSize: "0.85rem", marginBottom: "1.25rem" }}>
+            This deal was not found on {isTestnet ? "Arc Testnet (5042002)" : "Arc Mainnet (5042)"}. It may exist on the other network.
+          </p>
+          <button
+            onClick={() => setNetwork(isTestnet ? "mainnet" : "testnet")}
+            style={{
+              background: "var(--accent)", color: "#050B14", border: "none",
+              borderRadius: "var(--radius-btn)", padding: "0.5rem 1.1rem",
+              fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Switch to {isTestnet ? "Arc Mainnet" : "Arc Testnet"} ↗
+          </button>
         </div>
       </Wrap>
     );
   }
 
-  if (!d || d.seller === ZERO) {
-    return <Wrap><p style={{ color: "var(--subtle)" }}>Deal #{dealId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrap>;
-  }
 
   const deal: DealSummary = {
     id: dealId, seller: d.seller, buyer: d.buyer, termsHash: d.termsHash,
