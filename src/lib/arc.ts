@@ -126,7 +126,7 @@ export function formatDeadline(ts: number): string {
   });
 }
 
-/** Live countdown: returns "2h 14m", "45s", "Ended", etc. */
+/** Live countdown: returns "2h 14m 32s", "45s", "Ended", etc. */
 export function formatCountdown(deadlineTs: number): string {
   const secs = deadlineTs - Math.floor(Date.now() / 1000);
   if (secs <= 0) return "Ended";
@@ -134,7 +134,9 @@ export function formatCountdown(deadlineTs: number): string {
   if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
-  if (h < 24) return `${h}h ${m}m`;
+  const s = secs % 60;
+  if (h < 24) return `${h}h ${m}m ${s}s`;
   const d = Math.floor(h / 24);
   return `${d}d ${h % 24}h`;
 }
+

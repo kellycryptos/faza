@@ -10,6 +10,8 @@ import {
 } from "@/lib/arc";
 import { FazaLogo } from "@/components/FazaLogo";
 import { BorderBeam } from "border-beam";
+import { FAZABOND_ABI, getFazaBondAddress } from "@/lib/contract";
+import { FAZAOTC_ABI, getFazaOtcAddress } from "@/lib/otc-contract";
 
 import { useNetwork } from "@/context/NetworkContext";
 
@@ -249,6 +251,59 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
   );
 }
 
+function ClaimableFundsBadge({ address, chainId }: { address?: `0x${string}`; chainId?: number }) {
+  const bondContractAddr = getFazaBondAddress(chainId);
+  const otcContractAddr = getFazaOtcAddress(chainId);
+
+  const { data: bondClaimable } = useReadContract({
+    address: bondContractAddr || undefined,
+    abi: FAZABOND_ABI,
+    functionName: "claimable",
+    args: address ? [address] : undefined,
+    chainId,
+    query: { enabled: !!address && !!bondContractAddr, refetchInterval: 8000 },
+  });
+
+  const { data: otcClaimable } = useReadContract({
+    address: otcContractAddr || undefined,
+    abi: FAZAOTC_ABI,
+    functionName: "claimable",
+    args: address ? [address] : undefined,
+    chainId,
+    query: { enabled: !!address && !!otcContractAddr, refetchInterval: 8000 },
+  });
+
+  const total = (bondClaimable ? (bondClaimable as bigint) : 0n) + (otcClaimable ? (otcClaimable as bigint) : 0n);
+
+  if (!address || total <= 0n) return null;
+
+  return (
+    <Link
+      href="/#claimable-section"
+      title="You have settled or refunded stakes ready to withdraw!"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        padding: "3px 9px",
+        borderRadius: "var(--radius-pill)",
+        background: "rgba(46, 230, 166, 0.12)",
+        border: "1px solid var(--accent)",
+        color: "var(--accent)",
+        fontSize: "0.72rem",
+        fontWeight: 700,
+        textDecoration: "none",
+      }}
+    >
+      <span>🎁</span>
+      <span className="tabular">{formatUsdc(total)}</span>
+      <span style={{ fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#050B14", background: "var(--accent)", padding: "1px 5px", borderRadius: 4 }}>
+        Claim
+      </span>
+    </Link>
+  );
+}
+
 function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: number }) {
   const chain = getChain(chainId);
   const { data } = useReadContract({
@@ -265,15 +320,36 @@ function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: 
   if (!address || !chain || data === undefined) return null;
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 6,
-      padding: "3px 10px", borderRadius: "var(--radius-pill)",
-      background: "var(--surface)", border: "1px solid var(--border)",
-    }}>
+    <div
+      title="USDC is Arc's native gas asset. All transactions and settlements use USDC."
+      style={{
+        display: "flex", alignItems: "center", gap: 6,
+        padding: "3px 10px", borderRadius: "var(--radius-pill)",
+        background: "var(--surface)", border: "1px solid var(--border)",
+      }}
+    >
       <span className="tabular" style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--ink-2)" }}>
         {formatUsdc(data as bigint)}
       </span>
       <span style={{ fontSize: "0.68rem", color: "var(--subtle)", fontWeight: 600 }}>USDC</span>
+      <span
+        title="Arc uses USDC natively for gas"
+        style={{
+          fontSize: "0.58rem",
+          fontWeight: 800,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--accent)",
+          background: "rgba(46, 230, 166, 0.1)",
+          padding: "1px 5px",
+          borderRadius: 4,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 2,
+        }}
+      >
+        GAS
+      </span>
       {isTestnet && (data as bigint) < 1_000_000n && (
         <a
           href="https://faucet.circle.com"
@@ -281,8 +357,8 @@ function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: 
           rel="noopener noreferrer"
           style={{
             fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em",
-            color: "var(--accent)", textDecoration: "none",
-            background: "rgba(46,230,166,0.1)", padding: "1px 6px",
+            color: "var(--amber)", textDecoration: "none",
+            background: "rgba(245,166,35,0.12)", padding: "1px 6px",
             borderRadius: 4,
           }}
         >
@@ -342,6 +418,7 @@ export function Navbar() {
         </Link>
       </nav>
 
+      <ClaimableFundsBadge address={address} chainId={activeChainId} />
       <UsdcBalance address={address} chainId={activeChainId} />
       <NetworkDropdown walletChainId={walletChainId} />
       <ConnectButton.Custom>
