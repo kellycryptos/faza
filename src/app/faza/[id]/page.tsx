@@ -1,12 +1,12 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
-import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS } from "@/lib/contract";
+import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS, getFallbackBond } from "@/lib/contract";
 import { BondActions } from "@/components/BondActions";
 import type { BondSummary } from "@/components/BondCard";
 
@@ -14,9 +14,7 @@ import { useNetwork } from "@/context/NetworkContext";
 
 export default function FazaPage({ params }: { params?: Promise<{ id: string }> }) {
   const routeParams = useParams();
-  const idFromNav = (routeParams?.id as string) ?? "";
-  const resolved = params ? use(params) : undefined;
-  const id = idFromNav || resolved?.id || "";
+  const id = (routeParams?.id as string) ?? "";
   const bondId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [countdown, setCountdown] = useState("");
@@ -24,6 +22,7 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
   const { chainId: walletChainId } = useAccount();
   const { chainId: effectiveChainId, isTestnet } = useNetwork();
   const contractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
+  const fallback = !isNaN(bondId) ? getFallbackBond(bondId, effectiveChainId) : undefined;
 
   const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
@@ -36,15 +35,32 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
 
   useEffect(() => { if (refreshKey > 0) refetch(); }, [refreshKey, refetch]);
 
+  const b = (raw && (raw as any).creator && (raw as any).creator !== "0x0000000000000000000000000000000000000000")
+    ? (raw as {
+        creator: `0x${string}`; joiner: `0x${string}`; stake: bigint;
+        deadline: bigint; title: string; creatorIn: boolean; joinerIn: boolean; settled: boolean;
+      })
+    : fallback
+    ? {
+        creator: fallback.creator as `0x${string}`,
+        joiner: fallback.joiner as `0x${string}`,
+        stake: BigInt(fallback.stake),
+        deadline: BigInt(fallback.deadline),
+        title: fallback.title,
+        creatorIn: fallback.creatorIn,
+        joinerIn: fallback.joinerIn,
+        settled: fallback.settled,
+      }
+    : undefined;
+
   // Live countdown
   useEffect(() => {
-    if (!raw) return;
-    const b = raw as { deadline: bigint; settled: boolean };
+    if (!b) return;
     const update = () => setCountdown(b.settled ? "" : formatCountdown(Number(b.deadline)));
     update();
     const t = setInterval(update, 1000);
     return () => clearInterval(t);
-  }, [raw]);
+  }, [b]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -56,7 +72,7 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
   if (isNaN(bondId)) return <Wrapper><p style={{ color: "var(--subtle)" }}>Invalid bond ID.</p></Wrapper>;
   if (!contractAddr) return <Wrapper><p style={{ color: "var(--subtle)" }}>Contract not deployed yet.</p></Wrapper>;
 
-  if (isLoading) {
+  if (isLoading && !b) {
     return (
       <Wrapper>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -67,11 +83,6 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
       </Wrapper>
     );
   }
-
-  const b = raw as {
-    creator: `0x${string}`; joiner: `0x${string}`; stake: bigint;
-    deadline: bigint; title: string; creatorIn: boolean; joinerIn: boolean; settled: boolean;
-  } | undefined;
 
   if (!b || b.creator === "0x0000000000000000000000000000000000000000") {
     return <Wrapper><p style={{ color: "var(--subtle)" }}>Bond #{bondId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrapper>;

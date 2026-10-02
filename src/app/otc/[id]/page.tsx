@@ -1,12 +1,12 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
-import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary, getFallbackDeal } from "@/lib/otc-contract";
 import { DealActions } from "@/components/DealActions";
 
 import { useNetwork } from "@/context/NetworkContext";
@@ -15,15 +15,14 @@ const ZERO = "0x0000000000000000000000000000000000000000";
 
 export default function OtcPage({ params }: { params?: Promise<{ id: string }> }) {
   const routeParams = useParams();
-  const idFromNav = (routeParams?.id as string) ?? "";
-  const resolved = params ? use(params) : undefined;
-  const id = idFromNav || resolved?.id || "";
+  const id = (routeParams?.id as string) ?? "";
   const dealId = parseInt(id, 10);
   const [refreshKey, setRefreshKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const { chainId: walletChainId } = useAccount();
   const { chainId: effectiveChainId, isTestnet } = useNetwork();
   const contractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
+  const fallback = !isNaN(dealId) ? getFallbackDeal(dealId, effectiveChainId) : undefined;
 
   const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
@@ -45,7 +44,34 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
   if (isNaN(dealId)) return <Wrap><p style={{ color: "var(--subtle)" }}>Invalid deal ID.</p></Wrap>;
   if (!contractAddr) return <Wrap><p style={{ color: "var(--subtle)" }}>Contract not deployed.</p></Wrap>;
 
-  if (isLoading) {
+  const d = (raw && (raw as any).seller && (raw as any).seller !== ZERO)
+    ? (raw as {
+        seller: `0x${string}`; buyer: `0x${string}`; termsHash: `0x${string}`;
+        asset: `0x${string}`; size: bigint; priceUsdc: bigint; stake: bigint; deadline: bigint;
+        sellerAttested: boolean; buyerAttested: boolean;
+        sellerDone: boolean; buyerDone: boolean;
+        settled: boolean; state: number;
+      })
+    : fallback
+    ? {
+        seller: fallback.seller as `0x${string}`,
+        buyer: fallback.buyer as `0x${string}`,
+        termsHash: fallback.termsHash as `0x${string}`,
+        asset: fallback.asset as `0x${string}`,
+        size: BigInt(fallback.size),
+        priceUsdc: BigInt(fallback.priceUsdc),
+        stake: BigInt(fallback.stake),
+        deadline: BigInt(fallback.deadline),
+        sellerAttested: fallback.sellerAttested,
+        buyerAttested: fallback.buyerAttested,
+        sellerDone: fallback.sellerDone,
+        buyerDone: fallback.buyerDone,
+        settled: fallback.settled,
+        state: fallback.state,
+      }
+    : undefined;
+
+  if (isLoading && !d) {
     return (
       <Wrap>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -56,14 +82,6 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
       </Wrap>
     );
   }
-
-  const d = raw as {
-    seller: `0x${string}`; buyer: `0x${string}`; termsHash: `0x${string}`;
-    asset: `0x${string}`; size: bigint; priceUsdc: bigint; stake: bigint; deadline: bigint;
-    sellerAttested: boolean; buyerAttested: boolean;
-    sellerDone: boolean; buyerDone: boolean;
-    settled: boolean; state: number;
-  } | undefined;
 
   if (!d || d.seller === ZERO) {
     return <Wrap><p style={{ color: "var(--subtle)" }}>Deal #{dealId} not found on {isTestnet ? "Arc Testnet" : "Arc Mainnet"}.</p></Wrap>;
