@@ -15,6 +15,7 @@ import {
 import { FAZABOND_ABI, FAZABOND_ADDRESS, getFazaBondAddress } from "@/lib/contract";
 import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contract";
 import { ProtocolGuide } from "@/components/ProtocolGuide";
+import { MyActivityDashboard } from "@/components/MyActivityDashboard";
 import { useNetwork } from "@/context/NetworkContext";
 import { BorderBeam } from "border-beam";
 
@@ -295,27 +296,6 @@ export default function HomePage() {
     return list;
   }, [deals, search, dealFilter, address, now]);
 
-  const myPendingCheckInCount = useMemo(() => {
-    if (!address) return 0;
-    return bonds.filter((b) => {
-      const isCreator = b.creator.toLowerCase() === address.toLowerCase();
-      const isJoiner = b.joiner && b.joiner.toLowerCase() === address.toLowerCase();
-      const hasJoiner = b.joiner && b.joiner !== ZERO;
-      if (!hasJoiner || b.settled || now >= b.deadline) return false;
-      return (isCreator && !b.creatorIn) || (isJoiner && !b.joinerIn);
-    }).length;
-  }, [bonds, address, now]);
-
-  const myPendingDealActionCount = useMemo(() => {
-    if (!address) return 0;
-    return deals.filter((d) => {
-      const isSeller = d.seller.toLowerCase() === address.toLowerCase();
-      const isBuyer = d.buyer && d.buyer.toLowerCase() === address.toLowerCase();
-      const hasBuyer = d.buyer && d.buyer !== ZERO;
-      if (!hasBuyer || d.settled || now >= d.deadline) return false;
-      return (isSeller && !d.sellerDone) || (isBuyer && !d.buyerDone);
-    }).length;
-  }, [deals, address, now]);
 
   const explorerBond = bondContractAddr ? getExplorerAddress(bondContractAddr, effectiveChainId) : null;
   const explorerOtc = otcContractAddr ? getExplorerAddress(otcContractAddr, effectiveChainId) : null;
@@ -584,108 +564,31 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Dashboard Overview for My Bonds */}
-      {tab === "bond" && bondFilter === "mine" && address && (
-        <div style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-card)",
-          padding: "0.85rem 1.15rem",
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-        }}>
-          <div>
-            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
-              My Bonds Activity
-            </span>
-            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
-              {filteredBonds.length} bond{filteredBonds.length === 1 ? "" : "s"} found for {address.slice(0, 6)}…{address.slice(-4)}
-            </div>
-          </div>
-          {myPendingCheckInCount > 0 ? (
-            <span style={{
-              background: "rgba(245, 166, 35, 0.15)",
-              border: "1px solid rgba(245, 166, 35, 0.4)",
-              color: "var(--amber)",
-              borderRadius: "var(--radius-pill)",
-              padding: "4px 12px",
-              fontSize: "0.74rem",
-              fontWeight: 700,
-            }}>
-              ⚠️ {myPendingCheckInCount} check-in{myPendingCheckInCount > 1 ? "s" : ""} required before deadline
-            </span>
-          ) : (
-            <span style={{
-              background: "rgba(46, 230, 166, 0.1)",
-              border: "1px solid rgba(46, 230, 166, 0.25)",
-              color: "var(--accent)",
-              borderRadius: "var(--radius-pill)",
-              padding: "4px 12px",
-              fontSize: "0.74rem",
-              fontWeight: 700,
-            }}>
-              ✓ Check-ins up to date
-            </span>
-          )}
-        </div>
+      {/* My Activity Dashboard — shown instead of the flat list when filter = mine */}
+      {tab === "bond" && bondFilter === "mine" && (
+        <MyActivityDashboard
+          bonds={bonds}
+          deals={deals}
+          bondContractAddr={bondContractAddr}
+          otcContractAddr={otcContractAddr}
+          chainId={effectiveChainId}
+          mode="bonds"
+        />
       )}
 
-      {/* Dashboard Overview for My Deals */}
-      {tab === "otc" && dealFilter === "mine" && address && (
-        <div style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-card)",
-          padding: "0.85rem 1.15rem",
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-        }}>
-          <div>
-            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
-              My OTC Deals Activity
-            </span>
-            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
-              {filteredDeals.length} deal{filteredDeals.length === 1 ? "" : "s"} found for {address.slice(0, 6)}…{address.slice(-4)}
-            </div>
-          </div>
-          {myPendingDealActionCount > 0 ? (
-            <span style={{
-              background: "rgba(245, 166, 35, 0.15)",
-              border: "1px solid rgba(245, 166, 35, 0.4)",
-              color: "var(--amber)",
-              borderRadius: "var(--radius-pill)",
-              padding: "4px 12px",
-              fontSize: "0.74rem",
-              fontWeight: 700,
-            }}>
-              ⚠️ {myPendingDealActionCount} deal action{myPendingDealActionCount > 1 ? "s" : ""} pending
-            </span>
-          ) : (
-            <span style={{
-              background: "rgba(46, 230, 166, 0.1)",
-              border: "1px solid rgba(46, 230, 166, 0.25)",
-              color: "var(--accent)",
-              borderRadius: "var(--radius-pill)",
-              padding: "4px 12px",
-              fontSize: "0.74rem",
-              fontWeight: 700,
-            }}>
-              ✓ Deals up to date
-            </span>
-          )}
-        </div>
+      {tab === "otc" && dealFilter === "mine" && (
+        <MyActivityDashboard
+          bonds={bonds}
+          deals={deals}
+          bondContractAddr={bondContractAddr}
+          otcContractAddr={otcContractAddr}
+          chainId={effectiveChainId}
+          mode="deals"
+        />
       )}
 
-      {/* Feed */}
-      {tab === "bond" && (
+      {/* Feed — shown for all, open, ready filters */}
+      {tab === "bond" && bondFilter !== "mine" && (
         <FeedSection
           label={`${isTestnet ? "Testnet Bonds" : "Bonds"}${filteredBonds.length !== bonds.length ? ` (${filteredBonds.length} of ${bonds.length})` : ` (${bonds.length})`}`}
           loading={bondsLoading}
@@ -696,7 +599,7 @@ export default function HomePage() {
         </FeedSection>
       )}
 
-      {tab === "otc" && (
+      {tab === "otc" && dealFilter !== "mine" && (
         <FeedSection
           label={`${isTestnet ? "Testnet OTC deals" : "OTC deals"}${filteredDeals.length !== deals.length ? ` (${filteredDeals.length} of ${deals.length})` : ` (${deals.length})`}`}
           loading={dealsLoading}
@@ -706,6 +609,7 @@ export default function HomePage() {
           {filteredDeals.map((d) => <DealCard key={d.id} deal={d} />)}
         </FeedSection>
       )}
+
 
       {/* Protocol Guide Section — positioned at the bottom above footer */}
       <div style={{ marginTop: "3.5rem" }}>
