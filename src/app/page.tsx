@@ -578,6 +578,8 @@ export default function HomePage() {
             ? <CreateForm onCreated={handleBondCreated} />
             : <OtcCreateForm onCreated={handleDealCreated} />}
         </div>
+      )}
+
       {/* Dashboard Overview for My Bonds */}
       {tab === "bond" && bondFilter === "mine" && address && (
         <div style={{
