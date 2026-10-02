@@ -252,8 +252,12 @@ export default function HomePage() {
     query: { enabled: !!otcContractAddr, refetchInterval: 8000 },
   });
 
-  const bondCount = Number(bondCountRaw ?? 0n) + (bondSeed > 0 ? 0 : 0);
-  const dealCount = Number(dealCountRaw ?? 0n) + (dealSeed > 0 ? 0 : 0);
+  // On Mainnet, initialize count to at least 1 so pre-render and initial client load display Genesis Bond & Deal immediately
+  const defaultBondCount = isMainnet ? 1 : 0;
+  const defaultDealCount = isMainnet ? 1 : 0;
+
+  const bondCount = (bondCountRaw !== undefined ? Number(bondCountRaw) : defaultBondCount) + (bondSeed > 0 ? 0 : 0);
+  const dealCount = (dealCountRaw !== undefined ? Number(dealCountRaw) : defaultDealCount) + (dealSeed > 0 ? 0 : 0);
   const { bonds, isLoading: bondsLoading, refetch: refetchBonds } = useBonds(bondCount, effectiveChainId);
   const { deals, isLoading: dealsLoading, refetch: refetchDeals } = useDeals(dealCount, effectiveChainId);
 

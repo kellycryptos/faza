@@ -227,3 +227,28 @@ export function getFazaBondAddress(chainId?: number): FazabondAddress | undefine
 /** Static address for use in non-hook contexts (defaults to mainnet). */
 export const FAZABOND_ADDRESS = (process.env.NEXT_PUBLIC_MAINNET_FAZABOND_ADDRESS ||
   MAINNET_FAZABOND) as FazabondAddress;
+
+export interface GenesisBondSummary {
+  id: number;
+  creator: string;
+  joiner: string;
+  stake: string;
+  deadline: number;
+  title: string;
+  creatorIn: boolean;
+  joinerIn: boolean;
+  settled: boolean;
+}
+
+/** Confirmed immutable Genesis Bond #0 on Arc Mainnet */
+export const MAINNET_GENESIS_BOND: GenesisBondSummary = {
+  id: 0,
+  creator: "0x7aB0F124b145BE7516A1633FE2da81195De7846c",
+  joiner: "0x0000000000000000000000000000000000000000",
+  stake: "10000",
+  deadline: 1790585344,
+  title: "Genesis Bond #0 — Show Up on Arc Mainnet",
+  creatorIn: false,
+  joinerIn: false,
+  settled: false,
+};

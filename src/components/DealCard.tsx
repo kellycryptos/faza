@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
+
 import { DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
@@ -44,6 +46,25 @@ export function DealCard({ deal }: { deal: DealSummary }) {
   const pvp = isPvp(deal);
   const hasBuyer = deal.buyer && deal.buyer !== ZERO;
   const { isTestnet } = useNetwork();
+  const { address } = useAccount();
+  const [copied, setCopied] = useState(false);
+
+  const now = Math.floor(Date.now() / 1000);
+  const isSeller = address && address.toLowerCase() === deal.seller.toLowerCase();
+  const isBuyer = address && hasBuyer && address.toLowerCase() === deal.buyer.toLowerCase();
+  const needsAction = hasBuyer && !deal.settled && now < deal.deadline && (
+    (isSeller && !deal.sellerDone) || (isBuyer && !deal.buyerDone)
+  );
+
+  const handleQuickCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/otc/${deal.id}${isTestnet ? "?network=testnet" : ""}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <Link
@@ -119,18 +140,55 @@ export function DealCard({ deal }: { deal: DealSummary }) {
               Deal #{deal.id}
             </span>
           </div>
-          <span
-            style={{
-              fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em",
-              textTransform: "uppercase", padding: "3px 10px",
-              borderRadius: "var(--radius-pill)",
-              background: pill.bg, color: pill.fg,
-              border: `1px solid ${pill.fg}33`,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {pill.label}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {needsAction && (
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  background: "rgba(245, 166, 35, 0.18)",
+                  border: "1px solid var(--amber)",
+                  color: "var(--amber)",
+                  borderRadius: "var(--radius-pill)",
+                  padding: "2px 8px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ⚠️ Action needed
+              </span>
+            )}
+            <button
+              onClick={handleQuickCopy}
+              title="Copy share link"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: copied ? "var(--accent)" : "var(--subtle)",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+                padding: "2px 5px",
+                borderRadius: 4,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              {copied ? "✓" : "🔗"}
+            </button>
+            <span
+              style={{
+                fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em",
+                textTransform: "uppercase", padding: "3px 10px",
+                borderRadius: "var(--radius-pill)",
+                background: pill.bg, color: pill.fg,
+                border: `1px solid ${pill.fg}33`,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {pill.label}
+            </span>
+          </div>
         </div>
 
         {/* Terms hash */}

@@ -98,6 +98,13 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
     return { text: "Ready to settle", color: "var(--amber)", bg: "var(--amber-dim)" };
   })();
 
+  const tweetText = !hasJoiner
+    ? `I created a ${formatUsdc(b.stake)} show-up bond on Arc: "${b.title}". Match my stake before the deadline: ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`
+    : b.settled
+    ? `Show-up bond #${bondId} on Arc settled: "${b.title}". Verifiable onchain: ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`
+    : `Show-up bond #${bondId} is live on Arc: "${b.title}" (${formatUsdc(b.stake)} stake): ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`;
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
   return (
     <Wrapper>
       {/* Back */}
@@ -142,15 +149,53 @@ export default function FazaPage({ params }: { params?: Promise<{ id: string }> 
             {statusLabel.text}
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           <p style={{ fontSize: "0.78rem", color: "var(--subtle)", margin: 0 }}>Bond #{bondId}</p>
-          <button onClick={handleCopy} style={{
-            background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6,
-            padding: "2px 8px", fontSize: "0.72rem", color: "var(--muted)",
-            cursor: "pointer", fontFamily: "'Inter', sans-serif",
-          }}>
-            {copied ? "Copied!" : "Copy link"}
+          <button
+            onClick={handleCopy}
+            title="Copy link to clipboard"
+            style={{
+              background: copied ? "rgba(46,230,166,0.12)" : "var(--surface)",
+              border: `1px solid ${copied ? "var(--accent)" : "var(--border)"}`,
+              borderRadius: 6,
+              padding: "3px 9px",
+              fontSize: "0.72rem",
+              color: copied ? "var(--accent)" : "var(--muted)",
+              cursor: "pointer",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            {copied ? "✓ Copied" : "🔗 Copy link"}
           </button>
+          <a
+            href={tweetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Share this bond on X"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              padding: "3px 9px",
+              fontSize: "0.72rem",
+              color: "var(--ink)",
+              textDecoration: "none",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            Share on 𝕏
+          </a>
         </div>
       </div>
 

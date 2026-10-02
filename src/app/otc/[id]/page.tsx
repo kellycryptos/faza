@@ -84,6 +84,13 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
   const expired = now >= deal.deadline;
   const stateName = DEAL_STATES[deal.state] ?? "Unknown";
 
+  const tweetText = !hasBuyer
+    ? `I created an onchain OTC deal on Arc: Deal #${dealId} (${pvp ? "PvP Token Swap" : "Offchain Asset Bond"}). Terms cryptographically locked: ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`
+    : deal.settled
+    ? `OTC Deal #${dealId} on Arc settled onchain: ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`
+    : `OTC Deal #${dealId} is live on Arc (${formatUsdc(d.priceUsdc)}): ${typeof window !== "undefined" ? window.location.href : ""} via @fazaotc`;
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
   return (
     <Wrap>
       <Link
@@ -133,17 +140,55 @@ export default function OtcPage({ params }: { params?: Promise<{ id: string }> }
         </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
         <h1 className="display" style={{ fontSize: "clamp(1.4rem,4vw,1.9rem)", fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.03em", margin: 0 }}>
           Deal #{dealId}
         </h1>
-        <button onClick={handleCopy} style={{
-          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6,
-          padding: "2px 8px", fontSize: "0.72rem", color: "var(--muted)",
-          cursor: "pointer", fontFamily: "'Inter', sans-serif",
-        }}>
-          {copied ? "Copied!" : "Copy link"}
+        <button
+          onClick={handleCopy}
+          title="Copy link to clipboard"
+          style={{
+            background: copied ? "rgba(46,230,166,0.12)" : "var(--surface)",
+            border: `1px solid ${copied ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: 6,
+            padding: "3px 9px",
+            fontSize: "0.72rem",
+            color: copied ? "var(--accent)" : "var(--muted)",
+            cursor: "pointer",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          {copied ? "✓ Copied" : "🔗 Copy link"}
         </button>
+        <a
+          href={tweetUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Share this deal on X"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: 6,
+            padding: "3px 9px",
+            fontSize: "0.72rem",
+            color: "var(--ink)",
+            textDecoration: "none",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+          }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          Share on 𝕏
+        </a>
       </div>
 
       {/* Terms hash */}

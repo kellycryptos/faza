@@ -1,7 +1,7 @@
 "use client";
 
 import { useReadContracts } from "wagmi";
-import { getFazaBondAddress, FAZABOND_ABI } from "@/lib/contract";
+import { getFazaBondAddress, FAZABOND_ABI, MAINNET_GENESIS_BOND } from "@/lib/contract";
 import type { BondSummary } from "@/components/BondCard";
 
 interface UseBondsResult {
@@ -12,10 +12,14 @@ interface UseBondsResult {
 
 export function useBonds(count: number, chainId?: number): UseBondsResult {
   const targetChainId = chainId === 5042002 ? 5042002 : 5042;
+  const isMainnet = targetChainId === 5042;
   const contractAddr = getFazaBondAddress(targetChainId);
 
+  // On Mainnet, query at least 1 bond (Genesis Bond 0) even if count hasn't loaded yet
+  const effectiveCount = (isMainnet && count === 0) ? 1 : count;
+
   const contracts = contractAddr
-    ? Array.from({ length: count }, (_, i) => ({
+    ? Array.from({ length: effectiveCount }, (_, i) => ({
         address: contractAddr as `0x${string}`,
         abi: FAZABOND_ABI,
         functionName: "getBond" as const,
@@ -26,10 +30,13 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
 
   const { data, isLoading, refetch } = useReadContracts({
     contracts,
-    query: { enabled: count > 0 && !!contractAddr },
+    query: {
+      enabled: effectiveCount > 0 && !!contractAddr,
+      refetchInterval: 8000,
+    },
   });
 
-  const bonds: BondSummary[] = (data ?? [])
+  const parsedBonds: BondSummary[] = (data ?? [])
     .flatMap((r, i) => {
       if (r.status !== "success" || !r.result) return [];
       const res = r.result as any;
@@ -56,5 +63,11 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
     })
     .reverse();
 
-  return { bonds, isLoading, refetch };
+  // On mainnet, if onchain read hasn't completed yet or returned empty while count is 0 or 1,
+  // ensure Genesis Bond #0 is immediately visible rather than rendering an empty list
+  const bonds = (isMainnet && parsedBonds.length === 0 && count <= 1)
+    ? [MAINNET_GENESIS_BOND]
+    : parsedBonds;
+
+  return { bonds, isLoading: isLoading && bonds.length === 0, refetch };
 }

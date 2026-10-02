@@ -201,3 +201,23 @@ export interface DealSummary {
 export function isPvp(deal: Pick<DealSummary, "asset">): boolean {
   return deal.asset !== "0x0000000000000000000000000000000000000000" && deal.asset !== "";
 }
+
+/** Confirmed immutable Genesis Deal #0 on Arc Mainnet */
+export const MAINNET_GENESIS_DEAL: DealSummary = {
+  id: 0,
+  seller: "0x7aB0F124b145BE7516A1633FE2da81195De7846c",
+  buyer: "0x0000000000000000000000000000000000000000",
+  termsHash: "0x3869ac5fa35129987bd70084cc25ea061d2603add994a413d11d3fe0b9779daf",
+  asset: "0x0000000000000000000000000000000000000000",
+  size: "1",
+  priceUsdc: "10000",
+  stake: "10000",
+  deadline: 1790585348,
+  sellerAttested: false,
+  buyerAttested: false,
+  sellerDone: false,
+  buyerDone: false,
+  settled: false,
+  state: 0,
+};
+

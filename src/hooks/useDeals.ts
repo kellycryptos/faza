@@ -1,12 +1,16 @@
 "use client";
 
 import { useReadContracts } from "wagmi";
-import { getFazaOtcAddress, FAZAOTC_ABI, type DealSummary } from "@/lib/otc-contract";
+import { getFazaOtcAddress, FAZAOTC_ABI, MAINNET_GENESIS_DEAL, type DealSummary } from "@/lib/otc-contract";
 
 export function useDeals(count: number, chainId?: number) {
   const targetChainId = chainId === 5042002 ? 5042002 : 5042;
+  const isMainnet = targetChainId === 5042;
   const contractAddr = getFazaOtcAddress(targetChainId);
-  const ids = Array.from({ length: count }, (_, i) => i);
+
+  // On Mainnet, query at least 1 deal (Genesis Deal 0) even if count hasn't loaded yet
+  const effectiveCount = (isMainnet && count === 0) ? 1 : count;
+  const ids = Array.from({ length: effectiveCount }, (_, i) => i);
 
   const { data, isLoading, refetch } = useReadContracts({
     contracts: ids.map((i) => ({
@@ -16,10 +20,13 @@ export function useDeals(count: number, chainId?: number) {
       args: [BigInt(i)] as [bigint],
       chainId: targetChainId,
     })),
-    query: { enabled: count > 0 && !!contractAddr },
+    query: {
+      enabled: effectiveCount > 0 && !!contractAddr,
+      refetchInterval: 8000,
+    },
   });
 
-  const deals: DealSummary[] = (data ?? []).flatMap((r, i) => {
+  const parsedDeals: DealSummary[] = (data ?? []).flatMap((r, i) => {
     if (r.status !== "success" || !r.result) return [];
     const d = r.result as any;
     const seller = (d.seller ?? d[0]) as `0x${string}`;
@@ -57,5 +64,11 @@ export function useDeals(count: number, chainId?: number) {
     } satisfies DealSummary];
   }).reverse();
 
-  return { deals, isLoading, refetch };
+  // On mainnet, if onchain read hasn't completed yet or returned empty while count is 0 or 1,
+  // ensure Genesis Deal #0 is immediately visible
+  const deals = (isMainnet && parsedDeals.length === 0 && count <= 1)
+    ? [MAINNET_GENESIS_DEAL]
+    : parsedDeals;
+
+  return { deals, isLoading: isLoading && deals.length === 0, refetch };
 }

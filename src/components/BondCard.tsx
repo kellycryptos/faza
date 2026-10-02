@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
+
 
 export interface BondSummary {
   id: number;
@@ -83,6 +85,23 @@ export function BondCard({ bond }: { bond: BondSummary }) {
   const status = getStatus(bond);
   const hasJoiner = bond.joiner && bond.joiner !== "0x0000000000000000000000000000000000000000";
   const { isTestnet } = useNetwork();
+  const { address } = useAccount();
+  const [copied, setCopied] = useState(false);
+
+  const now = Math.floor(Date.now() / 1000);
+  const isCreator = address && address.toLowerCase() === bond.creator.toLowerCase();
+  const isJoiner = address && hasJoiner && address.toLowerCase() === bond.joiner.toLowerCase();
+  const needsCheckIn = hasJoiner && !bond.settled && now < bond.deadline && ((isCreator && !bond.creatorIn) || (isJoiner && !bond.joinerIn));
+
+  const handleQuickCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/faza/${bond.id}${isTestnet ? "?network=testnet" : ""}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <Link
@@ -137,7 +156,44 @@ export function BondCard({ bond }: { bond: BondSummary }) {
               {bond.title}
             </h3>
           </div>
-          <Pill {...status} />
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {needsCheckIn && (
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  background: "rgba(245, 166, 35, 0.18)",
+                  border: "1px solid var(--amber)",
+                  color: "var(--amber)",
+                  borderRadius: "var(--radius-pill)",
+                  padding: "2px 8px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ⚠️ Check-in needed
+              </span>
+            )}
+            <button
+              onClick={handleQuickCopy}
+              title="Copy share link"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: copied ? "var(--accent)" : "var(--subtle)",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+                padding: "2px 5px",
+                borderRadius: 4,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              {copied ? "✓" : "🔗"}
+            </button>
+            <Pill {...status} />
+          </div>
         </div>
 
         {/* Meta row */}
