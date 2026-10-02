@@ -71,6 +71,158 @@ function FeedSection({
   );
 }
 
+function ClaimBanner({
+  bondContractAddr,
+  otcContractAddr,
+  chainId,
+}: {
+  bondContractAddr?: `0x${string}`;
+  otcContractAddr?: `0x${string}`;
+  chainId: number;
+}) {
+  const { address } = useAccount();
+  const { data: bondClaimable, refetch: refetchBondClaimable } = useReadContract({
+    address: bondContractAddr || undefined,
+    abi: FAZABOND_ABI,
+    functionName: "claimable",
+    args: address ? [address] : undefined,
+    chainId,
+    query: { enabled: !!address && !!bondContractAddr, refetchInterval: 8000 },
+  });
+
+  const { data: otcClaimable, refetch: refetchOtcClaimable } = useReadContract({
+    address: otcContractAddr || undefined,
+    abi: FAZAOTC_ABI,
+    functionName: "claimable",
+    args: address ? [address] : undefined,
+    chainId,
+    query: { enabled: !!address && !!otcContractAddr, refetchInterval: 8000 },
+  });
+
+  const bondAmt = (bondClaimable as bigint) ?? 0n;
+  const otcAmt = (otcClaimable as bigint) ?? 0n;
+  const total = bondAmt + otcAmt;
+
+  const { writeContract: writeBondClaim, data: bondTxHash, isPending: bondClaimPending } = useWriteContract();
+  const { isLoading: bondWaiting, isSuccess: bondSuccess } = useWaitForTransactionReceipt({ hash: bondTxHash });
+
+  const { writeContract: writeOtcClaim, data: otcTxHash, isPending: otcClaimPending } = useWriteContract();
+  const { isLoading: otcWaiting, isSuccess: otcSuccess } = useWaitForTransactionReceipt({ hash: otcTxHash });
+
+  useEffect(() => {
+    if (bondSuccess) refetchBondClaimable();
+  }, [bondSuccess, refetchBondClaimable]);
+
+  useEffect(() => {
+    if (otcSuccess) refetchOtcClaimable();
+  }, [otcSuccess, refetchOtcClaimable]);
+
+  if (!address || total <= 0n) return null;
+
+  return (
+    <div
+      id="claimable-section"
+      style={{
+        background: "linear-gradient(135deg, rgba(46, 230, 166, 0.12) 0%, rgba(20, 32, 48, 0.6) 100%)",
+        border: "1px solid rgba(46, 230, 166, 0.4)",
+        borderRadius: "var(--radius-card)",
+        padding: "1.1rem 1.4rem",
+        marginBottom: "1.5rem",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "1rem",
+        boxShadow: "0 8px 32px rgba(46, 230, 166, 0.08)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            background: "rgba(46, 230, 166, 0.18)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "1.2rem",
+            flexShrink: 0,
+          }}
+        >
+          🎁
+        </div>
+        <div>
+          <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
+            Unclaimed Funds Available:
+            <span style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 800 }}>
+              {formatUsdc(total)}
+            </span>
+          </div>
+          <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
+            You have settled stakes or refunds waiting in contract escrow ready to withdraw.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        {bondAmt > 0n && bondContractAddr && (
+          <button
+            onClick={() =>
+              writeBondClaim({
+                address: bondContractAddr,
+                abi: FAZABOND_ABI,
+                functionName: "claim",
+                chainId,
+              })
+            }
+            disabled={bondClaimPending || bondWaiting}
+            style={{
+              background: "var(--accent)",
+              color: "#050B14",
+              border: "none",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.5rem 1rem",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              cursor: bondClaimPending || bondWaiting ? "not-allowed" : "pointer",
+              opacity: bondClaimPending || bondWaiting ? 0.7 : 1,
+            }}
+          >
+            {bondWaiting ? "Withdrawing…" : bondClaimPending ? "Confirming…" : `Withdraw Bond Stake (${formatUsdc(bondAmt)})`}
+          </button>
+        )}
+        {otcAmt > 0n && otcContractAddr && (
+          <button
+            onClick={() =>
+              writeOtcClaim({
+                address: otcContractAddr,
+                abi: FAZAOTC_ABI,
+                functionName: "claim",
+                chainId,
+              })
+            }
+            disabled={otcClaimPending || otcWaiting}
+            style={{
+              background: "var(--accent)",
+              color: "#050B14",
+              border: "none",
+              borderRadius: "var(--radius-btn)",
+              padding: "0.5rem 1rem",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              cursor: otcClaimPending || otcWaiting ? "not-allowed" : "pointer",
+              opacity: otcClaimPending || otcWaiting ? 0.7 : 1,
+            }}
+          >
+            {otcWaiting ? "Withdrawing…" : otcClaimPending ? "Confirming…" : `Withdraw OTC Stake (${formatUsdc(otcAmt)})`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { address, chainId: walletChainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -138,6 +290,28 @@ export default function HomePage() {
     if (dealFilter === "ready") list = list.filter(d => d.buyer && d.buyer !== ZERO && !d.settled && now >= d.deadline);
     return list;
   }, [deals, search, dealFilter, address, now]);
+
+  const myPendingCheckInCount = useMemo(() => {
+    if (!address) return 0;
+    return bonds.filter((b) => {
+      const isCreator = b.creator.toLowerCase() === address.toLowerCase();
+      const isJoiner = b.joiner && b.joiner.toLowerCase() === address.toLowerCase();
+      const hasJoiner = b.joiner && b.joiner !== ZERO;
+      if (!hasJoiner || b.settled || now >= b.deadline) return false;
+      return (isCreator && !b.creatorIn) || (isJoiner && !b.joinerIn);
+    }).length;
+  }, [bonds, address, now]);
+
+  const myPendingDealActionCount = useMemo(() => {
+    if (!address) return 0;
+    return deals.filter((d) => {
+      const isSeller = d.seller.toLowerCase() === address.toLowerCase();
+      const isBuyer = d.buyer && d.buyer.toLowerCase() === address.toLowerCase();
+      const hasBuyer = d.buyer && d.buyer !== ZERO;
+      if (!hasBuyer || d.settled || now >= d.deadline) return false;
+      return (isSeller && !d.sellerDone) || (isBuyer && !d.buyerDone);
+    }).length;
+  }, [deals, address, now]);
 
   const explorerBond = bondContractAddr ? getExplorerAddress(bondContractAddr, effectiveChainId) : null;
   const explorerOtc = otcContractAddr ? getExplorerAddress(otcContractAddr, effectiveChainId) : null;
@@ -244,6 +418,13 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Unclaimed Funds Section */}
+      <ClaimBanner
+        bondContractAddr={bondContractAddr}
+        otcContractAddr={otcContractAddr}
+        chainId={effectiveChainId}
+      />
 
       {/* Hero */}
       <div style={{
@@ -396,6 +577,104 @@ export default function HomePage() {
           {tab === "bond"
             ? <CreateForm onCreated={handleBondCreated} />
             : <OtcCreateForm onCreated={handleDealCreated} />}
+        </div>
+      {/* Dashboard Overview for My Bonds */}
+      {tab === "bond" && bondFilter === "mine" && address && (
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "0.85rem 1.15rem",
+          marginBottom: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+        }}>
+          <div>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
+              My Bonds Activity
+            </span>
+            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
+              {filteredBonds.length} bond{filteredBonds.length === 1 ? "" : "s"} found for {address.slice(0, 6)}…{address.slice(-4)}
+            </div>
+          </div>
+          {myPendingCheckInCount > 0 ? (
+            <span style={{
+              background: "rgba(245, 166, 35, 0.15)",
+              border: "1px solid rgba(245, 166, 35, 0.4)",
+              color: "var(--amber)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 12px",
+              fontSize: "0.74rem",
+              fontWeight: 700,
+            }}>
+              ⚠️ {myPendingCheckInCount} check-in{myPendingCheckInCount > 1 ? "s" : ""} required before deadline
+            </span>
+          ) : (
+            <span style={{
+              background: "rgba(46, 230, 166, 0.1)",
+              border: "1px solid rgba(46, 230, 166, 0.25)",
+              color: "var(--accent)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 12px",
+              fontSize: "0.74rem",
+              fontWeight: 700,
+            }}>
+              ✓ Check-ins up to date
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Dashboard Overview for My Deals */}
+      {tab === "otc" && dealFilter === "mine" && address && (
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)",
+          padding: "0.85rem 1.15rem",
+          marginBottom: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+        }}>
+          <div>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
+              My OTC Deals Activity
+            </span>
+            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
+              {filteredDeals.length} deal{filteredDeals.length === 1 ? "" : "s"} found for {address.slice(0, 6)}…{address.slice(-4)}
+            </div>
+          </div>
+          {myPendingDealActionCount > 0 ? (
+            <span style={{
+              background: "rgba(245, 166, 35, 0.15)",
+              border: "1px solid rgba(245, 166, 35, 0.4)",
+              color: "var(--amber)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 12px",
+              fontSize: "0.74rem",
+              fontWeight: 700,
+            }}>
+              ⚠️ {myPendingDealActionCount} deal action{myPendingDealActionCount > 1 ? "s" : ""} pending
+            </span>
+          ) : (
+            <span style={{
+              background: "rgba(46, 230, 166, 0.1)",
+              border: "1px solid rgba(46, 230, 166, 0.25)",
+              color: "var(--accent)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 12px",
+              fontSize: "0.74rem",
+              fontWeight: 700,
+            }}>
+              ✓ Deals up to date
+            </span>
+          )}
         </div>
       )}
 
