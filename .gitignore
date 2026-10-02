@@ -23,8 +23,8 @@ data/
 .circle/
 contracts/contract-metadata/
 
-# OS
-.DS_Store
-Thumbs.db
-.next/
-data/
+# Scratch & Screenshots
+*.png
+scripts/inspect-prod.mjs
+scripts/test-cache.mjs
+scripts/test-prod-headless.mjs
