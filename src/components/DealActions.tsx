@@ -187,6 +187,7 @@ function Btn({ label, busy, busyLabel, onClick, primary, disabled, orbState = "w
       fontSize: "0.88rem", fontFamily: "'Inter', sans-serif", fontWeight: 700,
       cursor: busy || disabled ? "not-allowed" : "pointer", minHeight: 42,
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+      flex: 1, minWidth: "min(100%, 160px)",
     }}>
       {busy && (
         <ThinkingOrb size={20} state={orbState} theme="dark" color="#2EE6A6" />

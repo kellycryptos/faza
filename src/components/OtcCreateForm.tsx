@@ -421,7 +421,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputStyle: React.CSSProperties = {
   background: "var(--surface-muted)", border: "1px solid var(--border)",
   borderRadius: 8, padding: "0.55rem 0.85rem",
-  color: "var(--ink)", fontSize: "0.9rem",
+  color: "var(--ink)", fontSize: "1rem",
   fontFamily: "'Inter', sans-serif", outline: "none", width: "100%",
 };
 

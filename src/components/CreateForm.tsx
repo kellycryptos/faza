@@ -187,7 +187,7 @@ export function CreateForm({ onCreated }: Props) {
   const inputStyle: React.CSSProperties = {
     background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8,
     padding: "0.6rem 0.85rem", color: "var(--ink)", fontFamily: "'Inter', sans-serif",
-    fontSize: "0.9rem", width: "100%", outline: "none",
+    fontSize: "1rem", width: "100%", outline: "none",
   };
   const labelStyle: React.CSSProperties = {
     fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)",

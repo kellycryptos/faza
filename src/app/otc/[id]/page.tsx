@@ -270,7 +270,7 @@ export default function OtcPage() {
       </div>
 
       {/* Two-column parties */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem" }}>
         <PartyCard
           role="Seller"
           addr={d.seller}
@@ -300,7 +300,7 @@ export default function OtcPage() {
 
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto", padding: "2rem 1.25rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <div style={{ maxWidth: 680, margin: "0 auto", padding: "1.5rem clamp(0.75rem, 3vw, 1.25rem) 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
       {children}
     </div>
   );

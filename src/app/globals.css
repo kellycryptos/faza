@@ -45,6 +45,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -54,6 +56,14 @@ body {
   font-size: 1rem;
   line-height: 1.6;
   min-height: 100dvh;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Prevent auto-zoom on iOS Safari when tapping inputs */
+input, select, textarea {
+  font-size: 16px;
 }
 
 /* Tabular numbers for USDC amounts */
@@ -89,3 +99,188 @@ a { color: inherit; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* ─── Responsive utilities ──────────────────────────────────────────────── */
+
+.hide-on-mobile {
+  display: flex !important;
+}
+
+.show-on-mobile {
+  display: none !important;
+}
+
+.network-text-desktop {
+  display: inline;
+}
+
+.network-text-mobile {
+  display: none;
+}
+
+.connect-text-desktop {
+  display: inline;
+}
+
+.connect-text-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .show-on-mobile {
+    display: flex !important;
+  }
+  .network-text-desktop {
+    display: none;
+  }
+  .network-text-mobile {
+    display: inline;
+  }
+}
+
+@media (max-width: 640px) {
+  .connect-text-desktop {
+    display: none;
+  }
+  .connect-text-mobile {
+    display: inline;
+  }
+}
+
+/* Navbar specific responsive styling */
+.navbar-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 60px;
+  background: rgba(7, 8, 11, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .navbar-header {
+    padding: 0 0.85rem;
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar-header {
+    padding: 0 0.5rem;
+    gap: 0.35rem;
+  }
+}
+
+/* Mobile Drawer Animation */
+@keyframes mobileDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-drawer-anim {
+  animation: mobileDrawerIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Filter pills horizontal scroll row */
+.filter-pills-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .filter-pills-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-right: -0.85rem;
+    padding-right: 0.85rem;
+  }
+  .filter-pills-row::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Controls (Tabs + Search + New button) */
+.controls-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .controls-bar-row1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .controls-bar-search {
+    width: 100% !important;
+  }
+}
+
+/* Hero Feature Strip */
+.hero-features-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--surface);
+  width: 100%;
+  max-width: 520px;
+}
+
+.hero-feature-box {
+  padding: 0.9rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .hero-feature-box {
+    padding: 0.75rem 0.45rem;
+  }
+  .hero-feature-box span.tabular {
+    font-size: 0.84rem !important;
+  }
+  .hero-feature-box span.label {
+    font-size: 0.6rem !important;
+    letter-spacing: 0.04em !important;
+  }
+}

@@ -307,7 +307,7 @@ export default function FazaPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: hasJoiner ? "1fr 1fr" : "1fr",
+          gridTemplateColumns: hasJoiner ? "repeat(auto-fit, minmax(200px, 1fr))" : "1fr",
           gap: "0.75rem",
         }}
       >
@@ -389,7 +389,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        maxWidth: 640, margin: "0 auto", padding: "2rem 1.25rem 5rem",
+        maxWidth: 640, margin: "0 auto", padding: "1.5rem clamp(0.75rem, 3vw, 1.25rem) 5rem",
         display: "flex", flexDirection: "column", gap: "1.25rem",
       }}
     >

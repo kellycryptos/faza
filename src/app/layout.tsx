@@ -1,8 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#07080B",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://faza-v1.vercel.app"),

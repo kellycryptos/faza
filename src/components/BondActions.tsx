@@ -49,6 +49,7 @@ function TxButton({
         cursor: isBusy || disabled ? "not-allowed" : "pointer",
         minHeight: 44, transition: "background 0.15s",
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+        flex: 1, minWidth: "min(100%, 180px)",
       }}
     >
       {isBusy && (
