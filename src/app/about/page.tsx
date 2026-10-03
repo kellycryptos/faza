@@ -48,8 +48,11 @@ export default function AboutPage() {
         >
           What is Faza?
         </h1>
-        <p style={{ color: "var(--muted)", fontSize: "1.05rem", marginTop: "0.5rem", lineHeight: 1.6 }}>
-          An autonomous bilateral coordination and settlement protocol on Arc Network. Two counterparties lock USDC into smart contract escrow, commit to verified terms, and settle purely onchain.
+        <p style={{ color: "var(--accent)", fontSize: "0.92rem", marginTop: "0.5rem", lineHeight: 1.6, fontWeight: 600 }}>
+          The only protocol purpose-built for micro-commitment enforcement on Arc — USDC-as-gas makes sub-$1 stakes economically viable for the first time.
+        </p>
+        <p style={{ color: "var(--muted)", fontSize: "1.05rem", marginTop: "0.25rem", lineHeight: 1.6 }}>
+          Two counterparties lock USDC into smart contract escrow, commit to verified terms, and settle purely onchain — no admin keys, no gas token juggling, no custodian.
         </p>
       </div>
 

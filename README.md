@@ -1,12 +1,14 @@
 # Faza
 
-**Autonomous Two-Party Micro-Bonds & Cryptographic OTC Deal Tickets on Arc**
+**The only protocol purpose-built for micro-commitment enforcement on Arc — using USDC-as-gas to make sub-\$1 stakes economically viable for the first time.**
 
 *Show up, or forfeit the stake.*
 
-Faza is a trustless, bilateral coordination protocol built natively on [Arc](https://arc.io). Two counterparties lock USDC into smart contract escrow, commit to mathematically identical terms, and settle purely onchain with cryptographic finality.
+Faza is a trustless, bilateral coordination protocol built natively on [Arc](https://arc.io). Two counterparties lock USDC into smart contract escrow, commit to mathematically identical terms, and settle purely onchain with cryptographic finality — with transaction fees costing fractions of a cent, no separate gas token required.
 
-It is designed specifically for peer-to-peer commitments: show-up bonds, service milestones, bilateral SLAs, and OTC deal tickets.
+Designed for real peer-to-peer commitments: show-up bonds, service milestones, bilateral SLAs, and cryptographic OTC deal tickets.
+
+> Built for [Arc Microgrants](https://dorahacks.io/hackathon/arc-) · Submissions close October 14, 2026
 
 | Metric / Parameter | Value |
 |---|---|
@@ -14,19 +16,33 @@ It is designed specifically for peer-to-peer commitments: show-up bonds, service
 | **Primary Network** | Arc Mainnet (Chain ID `5042`) |
 | **Sandbox Network** | Arc Testnet (Chain ID `5042002`) |
 | **Settlement & Gas Token** | Native USDC (`0x3600000000000000000000000000000000000000`) |
+| **Twitter / X** | [@Fazaotc](https://x.com/Fazaotc) |
 | **License** | MIT |
 
 ---
 
-## What We Built
+## Why Arc? Why Faza?
 
-Traditional contracts between two individuals suffer from two fundamental problems:
-1. **Ghosting & Coordination Friction**: No financial penalty exists when a counterparty fails to show up or uphold a verbal agreement.
-2. **Fee Drag**: On Ethereum or L2s, setting up an escrow for small commitments ($1 to $50) is impractical because multi-asset gas fees eat the principal before settlement.
+Traditional peer-to-peer agreements have two fatal flaws:
 
-Faza solves this by implementing autonomous state machines on Arc, where **USDC is the native gas token**. Because transaction fees cost fractions of a cent and require no separate gas token, micro-commitments from $0.01 to $100 become economically viable.
+1. **Ghosting costs nothing.** There is no financial penalty when a counterparty fails to show up, deliver, or honour a verbal agreement.
+2. **Micro-escrow was never economically viable.** On Ethereum or typical L2s, locking \$1–\$50 in escrow is impractical — multi-asset gas fees consume the principal before settlement.
+
+**Arc changes this.** Because USDC is the native gas token on Arc, a \$0.10 commitment costs the same fraction-of-a-cent in fees as a \$10,000 trade. There is no auxiliary gas token to acquire. This is the foundation Faza is built on.
+
+> **Faza is the only protocol purpose-built for micro-commitment enforcement on Arc — using USDC-as-gas to make sub-\$1 stakes economically viable for the first time.**
 
 Faza provides two core financial instruments:
+
+## Live Examples (Arc Mainnet)
+
+Real bonds running on-chain. Shareable links, verifiable on-explorer:
+
+| Bond | Link |
+|---|---|
+| View all live bonds | [faza-v1.vercel.app](https://faza-v1.vercel.app/) |
+| Arc Mainnet Explorer (FazaBond) | [0x3e925…49df](https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df) |
+
 
 ### 1. Show-Up Bonds (`FazaBond.sol`)
 

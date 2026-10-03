@@ -298,7 +298,7 @@ export default function HomePage() {
   const chainLabel = isTestnet ? "Arc Testnet (Sandbox · 5042002)" : "Arc Mainnet (Live · 5042)";
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 1.25rem 5rem" }}>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 clamp(0.75rem, 3vw, 1.25rem) 5rem" }}>
 
       {/* Testnet Sandbox Banner — clearly labels sandbox mode, visible without wallet */}
       {isTestnet && (
@@ -409,7 +409,7 @@ export default function HomePage() {
       {/* Hero */}
       <div style={{
         position: "relative", textAlign: "center",
-        padding: "4rem 1rem 3rem",
+        padding: "clamp(2.5rem, 5vw, 4rem) 1rem clamp(2rem, 4vw, 3rem)",
         overflow: "hidden",
       }}>
         <div style={{
@@ -435,86 +435,98 @@ export default function HomePage() {
             Two wallets lock USDC on Arc. Both check in before the deadline and the stake returns. One ghosts and the other takes both.
           </p>
 
-          <div style={{
-            display: "flex", gap: 0, marginTop: "1.5rem",
-            border: "1px solid var(--border)", borderRadius: "var(--radius-card)",
-            overflow: "hidden", background: "var(--surface)",
+          <p style={{
+            fontSize: "0.78rem", color: "var(--subtle)", maxWidth: "52ch",
+            lineHeight: 1.6, margin: 0,
+            borderTop: "1px solid var(--border)", paddingTop: "0.75rem",
           }}>
+            The only protocol purpose-built for micro-commitment enforcement on Arc — USDC-as-gas makes sub-\$1 stakes economically viable for the first time.
+          </p>
+
+          <div className="hero-features-strip">
             {[
               { n: "USDC", label: "Stake in" },
               { n: "Onchain", label: "Check in" },
-              { n: "After deadline", label: "Settle" },
+              { n: "Deadline", label: "Settle" },
             ].map((s, i) => (
-              <div key={i} style={{
-                padding: "0.9rem 1.4rem",
+              <div key={i} className="hero-feature-box" style={{
                 borderRight: i < 2 ? "1px solid var(--border)" : undefined,
-                display: "flex", flexDirection: "column", gap: 2, flex: 1,
               }}>
                 <span className="tabular" style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--ink)" }}>{s.n}</span>
-                <span style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>{s.label}</span>
+                <span className="label" style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>{s.label}</span>
               </div>
             ))}
+            <div className="hero-feature-box" style={{ borderLeft: "1px solid var(--border)" }}>
+              <span className="tabular" style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--accent)" }}>
+                {bondCount > 0 ? bondCount : "—"}
+              </span>
+              <span className="label" style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>
+                Bonds live
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Tab bar + Network view selector */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        {/* Product Tabs */}
-        <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
-          {(["bond", "otc"] as Tab[]).map((t) => (
-            <button key={t} onClick={() => { setTab(t); setComposing(false); setSearch(""); }}
+      {/* Tab bar + Search + Compose button */}
+      <div className="controls-bar">
+        <div className="controls-bar-row1">
+          {/* Product Tabs */}
+          <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
+            {(["bond", "otc"] as Tab[]).map((t) => (
+              <button key={t} onClick={() => { setTab(t); setComposing(false); setSearch(""); }}
+                style={{
+                  background: tab === t ? "var(--border-strong)" : "transparent",
+                  color: tab === t ? "var(--ink)" : "var(--muted)",
+                  border: "none", borderRadius: 8, padding: "0.35rem 0.9rem",
+                  fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                {t === "bond" ? "Show-up bonds" : "OTC deals"}
+              </button>
+            ))}
+          </div>
+
+          <BorderBeam
+            size="pulse-inner"
+            colorVariant={isTestnet ? "sunset" : "ocean"}
+            borderRadius={8}
+            active={!composing}
+            style={{ display: "inline-flex" }}
+          >
+            <button
+              onClick={() => setComposing(v => !v)}
               style={{
-                background: tab === t ? "var(--border-strong)" : "transparent",
-                color: tab === t ? "var(--ink)" : "var(--muted)",
-                border: "none", borderRadius: 8, padding: "0.35rem 0.9rem",
-                fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                background: isTestnet ? "var(--amber)" : "var(--accent)",
+                color: "#050B14",
+                border: "none", borderRadius: "var(--radius-btn)",
+                padding: "0.45rem 1rem", fontSize: "0.82rem",
+                fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
+                whiteSpace: "nowrap",
               }}
             >
-              {t === "bond" ? "Show-up bonds" : "OTC deals"}
+              {composing ? "Cancel" : tab === "bond" ? "New bond" : "New deal"}
             </button>
-          ))}
+          </BorderBeam>
         </div>
 
-        {/* Search */}
+        {/* Search input */}
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search…"
+          placeholder={tab === "bond" ? "Search bonds by title, creator, or ID…" : "Search deals by buyer, seller, or ID…"}
+          className="controls-bar-search"
           style={{
             background: "var(--surface-muted)", border: "1px solid var(--border)",
-            borderRadius: 8, padding: "0.35rem 0.75rem",
+            borderRadius: 8, padding: "0.45rem 0.85rem",
             color: "var(--ink)", fontSize: "0.82rem", fontFamily: "'Inter', sans-serif",
-            outline: "none", width: 130,
+            outline: "none", flex: 1, minWidth: 160,
           }}
         />
-
-        <div style={{ flex: 1 }} />
-        <BorderBeam
-          size="pulse-inner"
-          colorVariant={isTestnet ? "sunset" : "ocean"}
-          borderRadius={8}
-          active={!composing}
-          style={{ display: "inline-flex" }}
-        >
-          <button
-            onClick={() => setComposing(v => !v)}
-            style={{
-              background: isTestnet ? "var(--amber)" : "var(--accent)",
-              color: "#050B14",
-              border: "none", borderRadius: "var(--radius-btn)",
-              padding: "0.45rem 1rem", fontSize: "0.82rem",
-              fontFamily: "'Inter', sans-serif", fontWeight: 700, cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {composing ? "Cancel" : tab === "bond" ? (isTestnet ? "New testnet bond" : "New bond") : (isTestnet ? "New testnet deal" : "New deal")}
-          </button>
-        </BorderBeam>
       </div>
 
       {/* Filter pills */}
-      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.1rem", flexWrap: "wrap" }}>
+      <div className="filter-pills-row">
         {tab === "bond" ? (
           (["all", "mine", "open", "ready"] as FilterBond[]).map((f) => (
             <button key={f} onClick={() => setBondFilter(f)}
