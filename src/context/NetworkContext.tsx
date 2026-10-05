@@ -39,12 +39,16 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
         initialNet = "testnet";
       } else if (urlNet === "mainnet" || urlChain === "mainnet" || urlChain === "5042") {
         initialNet = "mainnet";
+      } else if (walletChainId === arcTestnet.id) {
+        initialNet = "testnet";
+      } else if (walletChainId === arcMainnet.id) {
+        initialNet = "mainnet";
       } else {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === "testnet" || saved === "mainnet") {
-          initialNet = saved as NetworkType;
-        } else if (walletChainId === arcTestnet.id) {
+        if (saved === "testnet" && urlNet === "testnet") {
           initialNet = "testnet";
+        } else {
+          initialNet = "mainnet";
         }
       }
     }
