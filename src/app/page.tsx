@@ -17,6 +17,8 @@ import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress } from "@/lib/otc-contr
 import { ProtocolGuide } from "@/components/ProtocolGuide";
 import { MyActivityDashboard } from "@/components/MyActivityDashboard";
 import { useNetwork } from "@/context/NetworkContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { getTranslation } from "@/lib/translations";
 import { BorderBeam } from "border-beam";
 
 type Tab = "bond" | "otc";
@@ -81,6 +83,8 @@ function ClaimBanner({
   otcContractAddr?: `0x${string}`;
   chainId: number;
 }) {
+  const { lang } = useLanguage();
+  const t = getTranslation(lang);
   const { address } = useAccount();
   const { data: bondClaimable, refetch: refetchBondClaimable } = useReadContract({
     address: bondContractAddr || undefined,
@@ -155,13 +159,13 @@ function ClaimBanner({
         </div>
         <div>
           <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
-            Unclaimed Funds Available:
+            {t.claimTitle}
             <span style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 800 }}>
               {formatUsdc(total)}
             </span>
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
-            You have settled stakes or refunds waiting in contract escrow ready to withdraw.
+            {t.claimDesc}
           </div>
         </div>
       </div>
@@ -190,7 +194,7 @@ function ClaimBanner({
               opacity: bondClaimPending || bondWaiting ? 0.7 : 1,
             }}
           >
-            {bondWaiting ? "Withdrawing…" : bondClaimPending ? "Confirming…" : `Withdraw Bond Stake (${formatUsdc(bondAmt)})`}
+            {bondWaiting ? "…" : bondClaimPending ? "…" : `${t.withdrawBondStake} (${formatUsdc(bondAmt)})`}
           </button>
         )}
         {otcAmt > 0n && otcContractAddr && (
@@ -216,7 +220,7 @@ function ClaimBanner({
               opacity: otcClaimPending || otcWaiting ? 0.7 : 1,
             }}
           >
-            {otcWaiting ? "Withdrawing…" : otcClaimPending ? "Confirming…" : `Withdraw OTC Stake (${formatUsdc(otcAmt)})`}
+            {otcWaiting ? "…" : otcClaimPending ? "…" : `${t.withdrawOtcStake} (${formatUsdc(otcAmt)})`}
           </button>
         )}
       </div>
@@ -228,6 +232,8 @@ export default function HomePage() {
   const { address, chainId: walletChainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { network, chainId: effectiveChainId, isMainnet, isTestnet, setNetwork } = useNetwork();
+  const { lang } = useLanguage();
+  const t = getTranslation(lang);
   const onArc = isSupportedChain(walletChainId);
   const chain = getChain(effectiveChainId);
 
@@ -273,8 +279,8 @@ export default function HomePage() {
       b.id.toString().includes(q)
     );
     if (bondFilter === "mine") list = list.filter(b => address && (b.creator.toLowerCase() === address.toLowerCase() || b.joiner.toLowerCase() === address.toLowerCase()));
-    if (bondFilter === "open") list = list.filter(b => (!b.joiner || b.joiner === ZERO) && !b.settled && now < b.deadline);
-    if (bondFilter === "ready") list = list.filter(b => b.joiner && b.joiner !== ZERO && !b.settled && now >= b.deadline);
+    if (bondFilter === "open") list = list.filter(b => b.isOnchain !== false && (!b.joiner || b.joiner === ZERO) && !b.settled && now < b.deadline);
+    if (bondFilter === "ready") list = list.filter(b => b.isOnchain !== false && b.joiner && b.joiner !== ZERO && !b.settled && now >= b.deadline);
     return list;
   }, [bonds, search, bondFilter, address, now]);
 
@@ -287,8 +293,8 @@ export default function HomePage() {
       d.id.toString().includes(q)
     );
     if (dealFilter === "mine") list = list.filter(d => address && (d.seller.toLowerCase() === address.toLowerCase() || (d.buyer && d.buyer.toLowerCase() === address.toLowerCase())));
-    if (dealFilter === "open") list = list.filter(d => (!d.buyer || d.buyer === ZERO) && !d.settled && now < d.deadline);
-    if (dealFilter === "ready") list = list.filter(d => d.buyer && d.buyer !== ZERO && !d.settled && now >= d.deadline);
+    if (dealFilter === "open") list = list.filter(d => d.isOnchain !== false && (!d.buyer || d.buyer === ZERO) && !d.settled && now < d.deadline);
+    if (dealFilter === "ready") list = list.filter(d => d.isOnchain !== false && d.buyer && d.buyer !== ZERO && !d.settled && now >= d.deadline);
     return list;
   }, [deals, search, dealFilter, address, now]);
 
@@ -426,13 +432,13 @@ export default function HomePage() {
           <h1 className="display" style={{
             fontSize: "clamp(2rem,6vw,3.2rem)", fontWeight: 800,
             color: "var(--ink)", letterSpacing: "-0.04em",
-            maxWidth: "16ch", margin: 0,
+            maxWidth: "18ch", margin: 0,
           }}>
-            Show up, or forfeit the stake.
+            {t.heroHeadline}
           </h1>
 
           <p style={{ color: "var(--muted)", fontSize: "clamp(0.9rem,2vw,1.05rem)", maxWidth: "48ch", lineHeight: 1.6, margin: 0 }}>
-            Two wallets lock USDC on Arc. Both check in before the deadline and the stake returns. One ghosts and the other takes both.
+            {t.heroSubtext}
           </p>
 
           <p style={{
@@ -440,14 +446,14 @@ export default function HomePage() {
             lineHeight: 1.6, margin: 0,
             borderTop: "1px solid var(--border)", paddingTop: "0.75rem",
           }}>
-            The only protocol purpose-built for micro-commitment enforcement on Arc — USDC-as-gas makes sub-\$1 stakes economically viable for the first time.
+            {t.heroPositioning}
           </p>
 
           <div className="hero-features-strip">
             {[
-              { n: "USDC", label: "Stake in" },
-              { n: "Onchain", label: "Check in" },
-              { n: "Deadline", label: "Settle" },
+              { n: "USDC", label: t.stepStakeLabel },
+              { n: "Onchain", label: t.stepCheckInLabel },
+              { n: "Deadline", label: t.stepSettleLabel },
             ].map((s, i) => (
               <div key={i} className="hero-feature-box" style={{
                 borderRight: i < 2 ? "1px solid var(--border)" : undefined,
@@ -461,7 +467,7 @@ export default function HomePage() {
                 {bondCount > 0 ? bondCount : "—"}
               </span>
               <span className="label" style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>
-                Bonds live
+                {lang === "zh" ? "链上契约" : "Bonds live"}
               </span>
             </div>
           </div>
@@ -473,16 +479,16 @@ export default function HomePage() {
         <div className="controls-bar-row1">
           {/* Product Tabs */}
           <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 3, gap: 2 }}>
-            {(["bond", "otc"] as Tab[]).map((t) => (
-              <button key={t} onClick={() => { setTab(t); setComposing(false); setSearch(""); }}
+            {(["bond", "otc"] as Tab[]).map((tabKey) => (
+              <button key={tabKey} onClick={() => { setTab(tabKey); setComposing(false); setSearch(""); }}
                 style={{
-                  background: tab === t ? "var(--border-strong)" : "transparent",
-                  color: tab === t ? "var(--ink)" : "var(--muted)",
+                  background: tab === tabKey ? "var(--border-strong)" : "transparent",
+                  color: tab === tabKey ? "var(--ink)" : "var(--muted)",
                   border: "none", borderRadius: 8, padding: "0.35rem 0.9rem",
                   fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
                 }}
               >
-                {t === "bond" ? "Show-up bonds" : "OTC deals"}
+                {tabKey === "bond" ? t.tabBonds : t.tabDeals}
               </button>
             ))}
           </div>
@@ -505,7 +511,7 @@ export default function HomePage() {
                 whiteSpace: "nowrap",
               }}
             >
-              {composing ? "Cancel" : tab === "bond" ? "New bond" : "New deal"}
+              {composing ? t.btnCancel : tab === "bond" ? t.btnNewBond : t.btnNewDeal}
             </button>
           </BorderBeam>
         </div>
@@ -514,7 +520,7 @@ export default function HomePage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={tab === "bond" ? "Search bonds by title, creator, or ID…" : "Search deals by buyer, seller, or ID…"}
+          placeholder={tab === "bond" ? t.searchBondsPlaceholder : t.searchDealsPlaceholder}
           className="controls-bar-search"
           style={{
             background: "var(--surface-muted)", border: "1px solid var(--border)",
@@ -539,7 +545,7 @@ export default function HomePage() {
                 textTransform: "capitalize",
               }}
             >
-              {f === "mine" ? "My bonds" : f === "ready" ? "Ready to settle" : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === "all" ? t.filterAll : f === "mine" ? t.filterMyBonds : f === "open" ? t.filterOpen : t.filterReady}
             </button>
           ))
         ) : (
@@ -554,7 +560,7 @@ export default function HomePage() {
                 textTransform: "capitalize",
               }}
             >
-              {f === "mine" ? "My deals" : f === "ready" ? "Ready to settle" : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === "all" ? t.filterAll : f === "mine" ? t.filterMyDeals : f === "open" ? t.filterOpen : t.filterReady}
             </button>
           ))
         )}
@@ -598,9 +604,9 @@ export default function HomePage() {
       {/* Feed — shown for all, open, ready filters */}
       {tab === "bond" && bondFilter !== "mine" && (
         <FeedSection
-          label={`${isTestnet ? "Testnet Bonds" : "Bonds"}${filteredBonds.length !== bonds.length ? ` (${filteredBonds.length} of ${bonds.length})` : ` (${bonds.length})`}`}
+          label={`${isTestnet ? (lang === "zh" ? "测试网契约" : "Testnet Bonds") : (lang === "zh" ? "履约押注契约" : "Bonds")}${filteredBonds.length !== bonds.length ? ` (${filteredBonds.length} / ${bonds.length})` : ` (${bonds.length})`}`}
           loading={bondsLoading}
-          empty={!bondContractAddr ? "Contract not deployed." : isTestnet ? "No testnet bonds yet. Create the first sandbox bond." : "No bonds yet. Create the first one."}
+          empty={!bondContractAddr ? (lang === "zh" ? "合约未部署" : "Contract not deployed.") : isTestnet ? (lang === "zh" ? "测试网暂无契约，欢迎发起首个测试契约。" : "No testnet bonds yet. Create the first sandbox bond.") : (lang === "zh" ? "暂无契约，欢迎发起首个履约押注。" : "No bonds yet. Create the first one.")}
           deployed={!!bondContractAddr}
         >
           {filteredBonds.map((b) => <BondCard key={b.id} bond={b} />)}
@@ -609,9 +615,9 @@ export default function HomePage() {
 
       {tab === "otc" && dealFilter !== "mine" && (
         <FeedSection
-          label={`${isTestnet ? "Testnet OTC deals" : "OTC deals"}${filteredDeals.length !== deals.length ? ` (${filteredDeals.length} of ${deals.length})` : ` (${deals.length})`}`}
+          label={`${isTestnet ? (lang === "zh" ? "测试网场外交易" : "Testnet OTC deals") : (lang === "zh" ? "场外交易" : "OTC deals")}${filteredDeals.length !== deals.length ? ` (${filteredDeals.length} / ${deals.length})` : ` (${deals.length})`}`}
           loading={dealsLoading}
-          empty={!otcContractAddr ? "OTC contract not deployed." : isTestnet ? "No testnet deals yet. Create the first sandbox deal." : "No deals yet. Create the first one."}
+          empty={!otcContractAddr ? (lang === "zh" ? "合约未部署" : "OTC contract not deployed.") : isTestnet ? (lang === "zh" ? "测试网暂无交易，欢迎发起首个测试交易。" : "No testnet deals yet. Create the first sandbox deal.") : (lang === "zh" ? "暂无交易，欢迎发起首个场外交易。" : "No deals yet. Create the first one.")}
           deployed={!!otcContractAddr}
         >
           {filteredDeals.map((d) => <DealCard key={d.id} deal={d} />)}

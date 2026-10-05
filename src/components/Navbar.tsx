@@ -20,11 +20,15 @@ import { BorderBeam } from "border-beam";
 import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS } from "@/lib/contract";
 import { FAZAOTC_ABI, getFazaOtcAddress, FAZAOTC_ADDRESS } from "@/lib/otc-contract";
 import { useNetwork } from "@/context/NetworkContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { t } from "@/lib/translations";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { isMainnet, isTestnet, setNetwork } = useNetwork();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -74,7 +78,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
           }}
         >
           <span className="network-text-desktop">
-            {isMainnet ? "ARC MAINNET" : "ARC TESTNET SANDBOX"}
+            {isMainnet ? t("networkMainnet", lang) : t("networkTestnet", lang)}
           </span>
           <span className="network-text-mobile">
             {isMainnet ? "Arc" : "Testnet"}
@@ -120,7 +124,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
         >
           <div style={{ padding: "6px 10px 4px", borderBottom: "1px solid var(--border)" }}>
             <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--subtle)" }}>
-              Select Network View
+              {t("selectNetwork", lang)}
             </span>
           </div>
 
@@ -459,6 +463,7 @@ function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: 
 export function Navbar() {
   const { address, chainId: walletChainId } = useAccount();
   const { chainId: activeChainId, isMainnet, isTestnet, setNetwork } = useNetwork();
+  const { lang } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copiedAddr, setCopiedAddr] = useState(false);
 
@@ -546,7 +551,7 @@ export function Navbar() {
         {/* Desktop Navigation Links */}
         <nav
           className="hide-on-mobile"
-          style={{ display: "flex", gap: "1.25rem", alignItems: "center", marginLeft: "1rem" }}
+          style={{ display: "flex", gap: "1rem", alignItems: "center", marginLeft: "1.25rem" }}
         >
           <Link
             href="/about"
@@ -558,8 +563,9 @@ export function Navbar() {
               transition: "color 0.15s ease",
             }}
           >
-            About
+            {t("navAbout", lang)}
           </Link>
+          <LanguageSwitcher />
         </nav>
 
         {/* Spacer */}
@@ -635,8 +641,8 @@ export function Navbar() {
                         gap: 4,
                       }}
                     >
-                      <span className="connect-text-desktop">Connect Wallet</span>
-                      <span className="connect-text-mobile">Connect</span>
+                      <span className="connect-text-desktop">{t("connectWallet", lang)}</span>
+                      <span className="connect-text-mobile">{t("connectWallet", lang)}</span>
                     </button>
                   </BorderBeam>
                 );
@@ -660,8 +666,8 @@ export function Navbar() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <span className="connect-text-desktop">Wrong network</span>
-                    <span className="connect-text-mobile">Switch</span>
+                    <span className="connect-text-desktop">{t("wrongNetwork", lang)}</span>
+                    <span className="connect-text-mobile">{t("switchNetwork", lang)}</span>
                   </button>
                 );
               }
@@ -1049,6 +1055,24 @@ export function Navbar() {
                 <span style={{ fontSize: "0.62rem", opacity: 0.8 }}>Chain 5042002</span>
               </button>
             </div>
+          </div>
+
+          {/* Language Switcher Card in Drawer */}
+          <div
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-card)",
+              padding: "0.85rem 1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--subtle)" }}>
+              {lang === "zh" ? "语言设置 / Language" : "Language / 语言"}
+            </div>
+            <LanguageSwitcher />
           </div>
 
           {/* Navigation Links List */}

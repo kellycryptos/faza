@@ -5,7 +5,6 @@ import { useReadContracts } from "wagmi";
 import {
   getFazaOtcAddress,
   FAZAOTC_ABI,
-  getDealsForNetwork,
   getLocalDeals,
   type DealSummary,
   type LocalDealSummary,
@@ -14,7 +13,6 @@ import {
 export function useDeals(count: number, chainId?: number) {
   const targetChainId = chainId === 5042002 ? 5042002 : 5042;
   const contractAddr = getFazaOtcAddress(targetChainId);
-  const baselineDeals = useMemo(() => getDealsForNetwork(targetChainId), [targetChainId]);
 
   // Read locally saved user deals
   const [localDeals, setLocalDeals] = useState<LocalDealSummary[]>([]);
@@ -89,6 +87,7 @@ export function useDeals(count: number, chainId?: number) {
         buyerDone,
         settled,
         state,
+        isOnchain: true,
       } satisfies DealSummary];
     }).reverse();
   }, [data]);
@@ -96,18 +95,15 @@ export function useDeals(count: number, chainId?: number) {
   // Merge:
   // 1. Pending locally created deals (shown at top immediately)
   // 2. Confirmed onchain deals (newest first)
-  // 3. Baseline curated deals (ensuring at least 10 items visible)
   const deals = useMemo(() => {
     const onchainIds = new Set(parsedDeals.map((d) => d.id));
     const pendingLocal = localDeals.filter((d) => !onchainIds.has(d.id));
-    const allKnownIds = new Set([...parsedDeals.map((d) => d.id), ...pendingLocal.map((d) => d.id)]);
-    const remainingBaseline = baselineDeals.filter((d) => !allKnownIds.has(d.id));
-    return [...pendingLocal, ...parsedDeals, ...remainingBaseline];
-  }, [parsedDeals, localDeals, baselineDeals]);
+    return [...pendingLocal, ...parsedDeals];
+  }, [parsedDeals, localDeals]);
 
   return {
     deals,
-    isLoading: false, // Instant zero-delay presentation: baseline & local deals are immediately ready
+    isLoading: !data && count > 0,
     refetch: () => {
       reloadLocal();
       refetch();

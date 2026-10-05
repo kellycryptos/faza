@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
-import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS, getFallbackBond } from "@/lib/contract";
+import { FAZABOND_ABI, getFazaBondAddress, FAZABOND_ADDRESS, getLocalBonds } from "@/lib/contract";
 import { BondActions } from "@/components/BondActions";
 import type { BondSummary } from "@/components/BondCard";
 
@@ -22,7 +22,7 @@ export default function FazaPage() {
   const { chainId: walletChainId } = useAccount();
   const { chainId: effectiveChainId, isTestnet, setNetwork } = useNetwork();
   const contractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
-  const fallback = !isNaN(bondId) ? getFallbackBond(bondId, effectiveChainId) : undefined;
+  const localMatch = !isNaN(bondId) ? getLocalBonds(effectiveChainId).find(b => b.id === bondId) : undefined;
 
   const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
@@ -40,16 +40,16 @@ export default function FazaPage() {
         creator: `0x${string}`; joiner: `0x${string}`; stake: bigint;
         deadline: bigint; title: string; creatorIn: boolean; joinerIn: boolean; settled: boolean;
       })
-    : fallback
+    : localMatch
     ? {
-        creator: fallback.creator as `0x${string}`,
-        joiner: fallback.joiner as `0x${string}`,
-        stake: BigInt(fallback.stake),
-        deadline: BigInt(fallback.deadline),
-        title: fallback.title,
-        creatorIn: fallback.creatorIn,
-        joinerIn: fallback.joinerIn,
-        settled: fallback.settled,
+        creator: localMatch.creator as `0x${string}`,
+        joiner: localMatch.joiner as `0x${string}`,
+        stake: BigInt(localMatch.stake),
+        deadline: BigInt(localMatch.deadline),
+        title: localMatch.title,
+        creatorIn: localMatch.creatorIn,
+        joinerIn: localMatch.joinerIn,
+        settled: localMatch.settled,
       }
     : undefined;
 
@@ -125,10 +125,13 @@ export default function FazaPage() {
   }
 
 
+  const isOnchain = Boolean(raw && (raw as any).creator && (raw as any).creator !== "0x0000000000000000000000000000000000000000");
+
   const bond: BondSummary = {
     id: bondId, creator: b.creator, joiner: b.joiner, stake: b.stake.toString(),
     deadline: Number(b.deadline), title: b.title,
     creatorIn: b.creatorIn, joinerIn: b.joinerIn, settled: b.settled,
+    isOnchain,
   };
 
   const hasJoiner = b.joiner !== "0x0000000000000000000000000000000000000000";
@@ -174,6 +177,21 @@ export default function FazaPage() {
           </span>
           <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
             This bond is on Arc Testnet (5042002). Collateral is testnet USDC.
+          </span>
+        </div>
+      )}
+
+      {/* Template Preview Alert */}
+      {!isOnchain && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.08)", border: "1px solid rgba(245, 166, 35, 0.3)",
+          borderRadius: 8, padding: "0.6rem 0.9rem", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", background: "rgba(245,166,35,0.2)", color: "var(--amber)", padding: "1px 6px", borderRadius: 4 }}>
+            TEMPLATE PREVIEW
+          </span>
+          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+            This show-up bond is a curated ecosystem template and has not yet been minted on-chain.
           </span>
         </div>
       )}
@@ -344,7 +362,7 @@ export default function FazaPage() {
         <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--subtle)", margin: 0 }}>
           Actions
         </p>
-        <BondActions bond={bond} onRefresh={() => { refetch(); setRefreshKey((k) => k + 1); }} />
+        <BondActions bond={bond} isOnchain={isOnchain} onRefresh={() => { refetch(); setRefreshKey((k) => k + 1); }} />
       </div>
     </Wrapper>
   );

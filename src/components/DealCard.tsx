@@ -6,25 +6,31 @@ import { useAccount } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
 
 import { DEAL_STATES, isPvp, type DealSummary } from "@/lib/otc-contract";
+import { useLanguage } from "@/context/LanguageContext";
+import { getTranslation, type Translations } from "@/lib/translations";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-function dealPill(deal: DealSummary): { label: string; bg: string; fg: string } {
+function dealPill(deal: DealSummary, t: Translations): { label: string; bg: string; fg: string } {
+  if (deal.isOnchain === false) {
+    return { label: t.statusTemplate, bg: "rgba(90,100,120,0.18)", fg: "var(--subtle)" };
+  }
   const now = Math.floor(Date.now() / 1000);
   const state = DEAL_STATES[deal.state] ?? "Unknown";
-  if (state === "Settled") return { label: "Settled", bg: "rgba(90,100,120,0.18)", fg: "var(--subtle)" };
-  if (state === "Forfeit") return { label: "Forfeit", bg: "var(--danger-dim)", fg: "var(--danger)" };
-  if (state === "Cancelled") return { label: "Cancelled", bg: "rgba(90,100,120,0.18)", fg: "var(--subtle)" };
+  if (state === "Settled") return { label: t.statusSettled, bg: "rgba(90,100,120,0.18)", fg: "var(--subtle)" };
+  if (state === "Forfeit") return { label: t.statusForfeit, bg: "var(--danger-dim)", fg: "var(--danger)" };
+  if (state === "Cancelled") return { label: t.statusCancelled, bg: "rgba(90,100,120,0.18)", fg: "var(--subtle)" };
   if (!deal.buyer || deal.buyer === ZERO) {
-    if (now >= deal.deadline) return { label: "Expired", bg: "var(--danger-dim)", fg: "var(--danger)" };
-    return { label: "Open", bg: "var(--accent-dim)", fg: "var(--accent)" };
+    if (now >= deal.deadline) return { label: t.statusExpired, bg: "var(--danger-dim)", fg: "var(--danger)" };
+    return { label: t.statusOpen, bg: "var(--accent-dim)", fg: "var(--accent)" };
   }
-  if (now >= deal.deadline) return { label: "Ready to settle", bg: "rgba(245,166,35,0.12)", fg: "var(--amber)" };
-  if (state === "Attested") return { label: "Attested", bg: "var(--accent-dim)", fg: "var(--accent)" };
-  return { label: "Live", bg: "rgba(46,230,166,0.08)", fg: "var(--accent)" };
+  if (now >= deal.deadline) return { label: t.statusReady, bg: "rgba(245,166,35,0.12)", fg: "var(--amber)" };
+  if (state === "Attested") return { label: t.statusAttested, bg: "var(--accent-dim)", fg: "var(--accent)" };
+  return { label: t.statusLive, bg: "rgba(46,230,166,0.08)", fg: "var(--accent)" };
 }
 
 function LiveCountdown({ deadline, settled }: { deadline: number; settled: boolean }) {
+  const { lang } = useLanguage();
   const [label, setLabel] = useState(() => settled ? "" : formatCountdown(deadline));
   useEffect(() => {
     if (settled) return;
@@ -34,7 +40,7 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   if (settled || !label || label === "Ended") return null;
   return (
     <span className="tabular" style={{ fontSize: "0.75rem", color: "var(--amber)", fontWeight: 600 }}>
-      {label} left
+      {lang === "zh" ? `剩余 ${label}` : `${label} left`}
     </span>
   );
 }
@@ -42,7 +48,9 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
 import { useNetwork } from "@/context/NetworkContext";
 
 export function DealCard({ deal }: { deal: DealSummary }) {
-  const pill = dealPill(deal);
+  const { lang } = useLanguage();
+  const t = getTranslation(lang);
+  const pill = dealPill(deal, t);
   const pvp = isPvp(deal);
   const hasBuyer = deal.buyer && deal.buyer !== ZERO;
   const { isTestnet } = useNetwork();
@@ -125,7 +133,7 @@ export function DealCard({ deal }: { deal: DealSummary }) {
                 whiteSpace: "nowrap",
               }}
             >
-              {pvp ? "PvP" : "Bond only"}
+              {pvp ? t.cardPvP : t.cardBondOnly}
             </span>
             <span
               style={{
@@ -156,7 +164,7 @@ export function DealCard({ deal }: { deal: DealSummary }) {
                   whiteSpace: "nowrap",
                 }}
               >
-                ⚠️ Action needed
+                ⚠️ {t.statusActionNeeded}
               </span>
             )}
             <button
@@ -198,18 +206,18 @@ export function DealCard({ deal }: { deal: DealSummary }) {
 
         {/* Stats */}
         <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
-          <Stat label="Price" value={formatUsdc(deal.priceUsdc)} />
-          <Stat label="Stake" value={formatUsdc(deal.stake)} />
-          <Stat label="Deadline" value={formatDeadline(deal.deadline)} />
+          <Stat label={t.cardPrice} value={formatUsdc(deal.priceUsdc)} />
+          <Stat label={t.cardStake} value={formatUsdc(deal.stake)} />
+          <Stat label={t.cardDeadline} value={formatDeadline(deal.deadline)} />
           <LiveCountdown deadline={deal.deadline} settled={deal.settled} />
         </div>
 
         {/* Parties */}
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <PartyTag role="Seller" addr={deal.seller} attested={deal.sellerAttested} />
+          <PartyTag role={t.cardSeller} addr={deal.seller} attested={deal.sellerAttested} />
           {hasBuyer
-            ? <PartyTag role="Buyer" addr={deal.buyer} attested={deal.buyerAttested} />
-            : <span style={{ fontSize: "0.75rem", color: "var(--subtle)" }}>Waiting for buyer…</span>
+            ? <PartyTag role={t.cardBuyer} addr={deal.buyer} attested={deal.buyerAttested} />
+            : <span style={{ fontSize: "0.75rem", color: "var(--subtle)" }}>{t.cardWaitingBuyer}</span>
           }
         </div>
       </article>

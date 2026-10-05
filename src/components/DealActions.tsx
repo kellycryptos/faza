@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAccount, useSwitchChain, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
 import { erc20Abi } from "viem";
 import {
@@ -12,7 +13,16 @@ import { ThinkingOrb } from "thinking-orbs";
 type Step = "idle" | "approving" | "approve-wait" | "submitting" | "tx-wait" | "done" | "error";
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-export function DealActions({ deal, onRefresh }: { deal: DealSummary; onRefresh: () => void }) {
+export function DealActions({
+  deal,
+  onRefresh,
+  isOnchain,
+}: {
+  deal: DealSummary;
+  onRefresh: () => void;
+  isOnchain?: boolean;
+}) {
+  const isTemplate = isOnchain === false || deal.isOnchain === false;
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const onArc = isSupportedChain(chainId);
@@ -121,6 +131,49 @@ export function DealActions({ deal, onRefresh }: { deal: DealSummary; onRefresh:
   const canSettleNow = hasBuyer && now >= deal.deadline && !deal.settled;
   const canCancelNow = !hasBuyer && now >= deal.deadline && !deal.settled && isSeller;
   const hasClaim = claimableAmt && (claimableAmt as bigint) > 0n;
+
+  if (isTemplate) {
+    return (
+      <div style={{
+        background: "rgba(245, 166, 35, 0.08)",
+        border: "1px solid rgba(245, 166, 35, 0.25)",
+        borderRadius: 10,
+        padding: "1.1rem 1.25rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.65rem",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: "1.1rem" }}>📋</span>
+          <p style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--amber)", margin: 0 }}>
+            Curated Template (Not Deployed On-Chain)
+          </p>
+        </div>
+        <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
+          Deal #{deal.id} is an ecosystem demo template and has not been created on the Arc blockchain yet. On-chain actions are disabled to prevent contract execution errors.
+        </p>
+        <Link
+          href="/?tab=otc"
+          style={{
+            alignSelf: "flex-start",
+            marginTop: 4,
+            background: "var(--accent)",
+            color: "#050B14",
+            textDecoration: "none",
+            borderRadius: 8,
+            padding: "0.5rem 1rem",
+            fontSize: "0.82rem",
+            fontWeight: 700,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          + Create a Live OTC Deal
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>

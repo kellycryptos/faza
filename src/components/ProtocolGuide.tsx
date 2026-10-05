@@ -4,11 +4,15 @@ import { useState } from "react";
 import { useAccount } from "wagmi";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
 import { useNetwork } from "@/context/NetworkContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { getTranslation } from "@/lib/translations";
 
 export function ProtocolGuide() {
   const [open, setOpen] = useState(false);
   const { isConnected } = useAccount();
   const { network, isMainnet, isTestnet, setNetwork } = useNetwork();
+  const { lang } = useLanguage();
+  const t = getTranslation(lang);
 
   return (
     <div
@@ -79,10 +83,10 @@ export function ProtocolGuide() {
                 boxShadow: isTestnet ? "0 0 6px rgba(245, 166, 35, 0.6)" : "0 0 6px var(--accent-glow)",
               }}
             />
-            Protocol Architecture
+            {t.guideTag}
           </span>
           <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--ink)" }}>
-            How Faza Works & Live Contracts
+            {t.guideTitle}
           </span>
         </div>
 
@@ -115,7 +119,7 @@ export function ProtocolGuide() {
             transition: "all 0.15s ease",
           }}
         >
-          <span>{open ? "Hide guide" : "Protocol Guide"}</span>
+          <span>{open ? t.btnHideGuide : t.btnProtocolGuide}</span>
           <svg
             width="12"
             height="12"
@@ -150,10 +154,7 @@ export function ProtocolGuide() {
           }}
         >
           <p style={{ fontSize: "0.85rem", color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>
-            Faza is an autonomous bilateral coordination and settlement protocol built for{" "}
-            <strong>Arc Mainnet</strong> (with Arc Testnet sandbox support) where{" "}
-            <strong>USDC functions as the native gas token</strong>. Two wallets lock USDC, commit to identical terms,
-            and settle purely onchain with zero intermediary custody.
+            {t.guideIntro}
           </p>
 
           {/* 3 Step Walkthrough */}
@@ -175,32 +176,10 @@ export function ProtocolGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>1.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Gas & Settlement</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>{t.guideStep1Title}</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                <strong style={{ color: "var(--ink)" }}>Arc Mainnet:</strong> Bridge USDC via{" "}
-                <a
-                  href="https://bridge.arc.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--accent)", textDecoration: "underline" }}
-                >
-                  bridge.arc.io
-                </a>
-                . Gas is fractions of a cent paid directly in USDC.
-                <br />
-                <span style={{ color: "var(--subtle)" }}>
-                  <strong>Testnet Sandbox:</strong> Test tokens available from{" "}
-                  <a
-                    href="https://faucet.circle.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "var(--muted)", textDecoration: "underline" }}
-                  >
-                    Circle Faucet
-                  </a>
-                  .
-                </span>
+                {t.guideStep1Text}
               </p>
             </div>
 
@@ -215,11 +194,10 @@ export function ProtocolGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>2.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>Show-up Bonds</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>{t.guideStep2Title}</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Wallet A locks a USDC stake ($0.01–$100) and sets a deadline. Wallet B joins with matching stake.
-                Both check in before deadline to unlock refund. If one party ghosts, the one who checked in claims both stakes.
+                {t.guideStep2Text}
               </p>
             </div>
 
@@ -234,11 +212,10 @@ export function ProtocolGuide() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--accent)" }}>3.</span>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>OTC Deal Tickets</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>{t.guideStep3Title}</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-                Seller commits a term sheet hashed onchain (keccak256). Buyer joins with identical hash.
-                For Arc ERC-20 tokens, settles atomic delivery vs USDC payment. For offchain transfers, locks a mutual USDC bond.
+                {t.guideStep3Text}
               </p>
             </div>
           </div>

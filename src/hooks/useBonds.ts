@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useReadContracts } from "wagmi";
-import { getFazaBondAddress, FAZABOND_ABI, getBondsForNetwork, getLocalBonds, type LocalBondSummary } from "@/lib/contract";
+import { getFazaBondAddress, FAZABOND_ABI, getLocalBonds, type LocalBondSummary } from "@/lib/contract";
 import type { BondSummary } from "@/components/BondCard";
 
 interface UseBondsResult {
@@ -14,7 +14,6 @@ interface UseBondsResult {
 export function useBonds(count: number, chainId?: number): UseBondsResult {
   const targetChainId = chainId === 5042002 ? 5042002 : 5042;
   const contractAddr = getFazaBondAddress(targetChainId);
-  const baselineBonds = useMemo(() => getBondsForNetwork(targetChainId), [targetChainId]);
 
   // Read locally saved user bonds
   const [localBonds, setLocalBonds] = useState<LocalBondSummary[]>([]);
@@ -76,6 +75,7 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
           creatorIn,
           joinerIn,
           settled,
+          isOnchain: true,
         } satisfies BondSummary];
       })
       .reverse();
@@ -84,18 +84,15 @@ export function useBonds(count: number, chainId?: number): UseBondsResult {
   // Merge:
   // 1. Pending locally created bonds (shown at top immediately)
   // 2. Confirmed onchain bonds (newest first)
-  // 3. Baseline curated bonds (ensuring at least 10 items visible)
   const bonds = useMemo(() => {
     const onchainIds = new Set(parsedBonds.map((b) => b.id));
     const pendingLocal = localBonds.filter((b) => !onchainIds.has(b.id));
-    const allKnownIds = new Set([...parsedBonds.map((b) => b.id), ...pendingLocal.map((b) => b.id)]);
-    const remainingBaseline = baselineBonds.filter((b) => !allKnownIds.has(b.id));
-    return [...pendingLocal, ...parsedBonds, ...remainingBaseline];
-  }, [parsedBonds, localBonds, baselineBonds]);
+    return [...pendingLocal, ...parsedBonds];
+  }, [parsedBonds, localBonds]);
 
   return {
     bonds,
-    isLoading: false, // Instant zero-delay presentation: baseline & local bonds are immediately ready
+    isLoading: !data && count > 0,
     refetch: () => {
       reloadLocal();
       refetch();

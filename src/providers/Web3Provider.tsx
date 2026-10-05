@@ -10,6 +10,7 @@ import { WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { arcMainnet, arcTestnet } from "@/lib/arc";
 import { NetworkProvider } from "@/context/NetworkContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const walletConnectProjectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ||
@@ -74,7 +75,9 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
             overlayBlur: "small",
           })}
         >
-          <NetworkProvider>{children}</NetworkProvider>
+          <LanguageProvider>
+            <NetworkProvider>{children}</NetworkProvider>
+          </LanguageProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

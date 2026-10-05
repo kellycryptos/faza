@@ -6,6 +6,9 @@ import { useAccount } from "wagmi";
 import { formatUsdc, formatDeadline, formatCountdown, shortAddr } from "@/lib/arc";
 
 
+import { useLanguage } from "@/context/LanguageContext";
+import { getTranslation, type Translations } from "@/lib/translations";
+
 export interface BondSummary {
   id: number;
   creator: string;
@@ -16,21 +19,25 @@ export interface BondSummary {
   creatorIn: boolean;
   joinerIn: boolean;
   settled: boolean;
+  isOnchain?: boolean;
 }
 
-type StatusInfo = { label: string; bg: string; color: string };
+type StatusInfo = { label: string; bg: string; color: string; dot?: boolean };
 
-function getStatus(bond: BondSummary): StatusInfo {
+function getStatus(bond: BondSummary, t: Translations): StatusInfo {
+  if (bond.isOnchain === false) {
+    return { label: t.statusTemplate, bg: "rgba(90,100,120,0.15)", color: "var(--subtle)" };
+  }
   const now = Math.floor(Date.now() / 1000);
   const noJoiner = !bond.joiner || bond.joiner === "0x0000000000000000000000000000000000000000";
-  if (bond.settled) return { label: "Settled", bg: "rgba(90,100,120,0.15)", color: "var(--subtle)" };
-  if (noJoiner && now >= bond.deadline) return { label: "Expired", bg: "var(--danger-dim)", color: "var(--danger)" };
-  if (noJoiner) return { label: "Open", bg: "var(--accent-dim)", color: "var(--accent)" };
-  if (now >= bond.deadline) return { label: "Ready to settle", bg: "var(--amber-dim)", color: "var(--amber)" };
-  return { label: "Live", bg: "var(--accent-dim)", color: "var(--accent)" };
+  if (bond.settled) return { label: t.statusSettled, bg: "rgba(90,100,120,0.15)", color: "var(--subtle)" };
+  if (noJoiner && now >= bond.deadline) return { label: t.statusExpired, bg: "var(--danger-dim)", color: "var(--danger)" };
+  if (noJoiner) return { label: t.statusOpen, bg: "var(--accent-dim)", color: "var(--accent)", dot: true };
+  if (now >= bond.deadline) return { label: t.statusReady, bg: "var(--amber-dim)", color: "var(--amber)" };
+  return { label: t.statusLive, bg: "var(--accent-dim)", color: "var(--accent)", dot: true };
 }
 
-function Pill({ label, bg, color }: StatusInfo) {
+function Pill({ label, bg, color, dot }: StatusInfo) {
   return (
     <span
       style={{
@@ -48,7 +55,7 @@ function Pill({ label, bg, color }: StatusInfo) {
         whiteSpace: "nowrap",
       }}
     >
-      {(label === "Open" || label === "Live") && (
+      {dot && (
         <span
           style={{
             width: 5,
@@ -65,6 +72,7 @@ function Pill({ label, bg, color }: StatusInfo) {
 }
 
 function LiveCountdown({ deadline, settled }: { deadline: number; settled: boolean }) {
+  const { lang } = useLanguage();
   const [label, setLabel] = useState(() => settled ? "" : formatCountdown(deadline));
   useEffect(() => {
     if (settled) return;
@@ -74,7 +82,7 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   if (settled || !label || label === "Ended") return null;
   return (
     <span className="tabular" style={{ fontSize: "0.78rem", color: "var(--amber)", fontWeight: 600 }}>
-      {label} left
+      {lang === "zh" ? `剩余 ${label}` : `${label} left`}
     </span>
   );
 }
@@ -82,7 +90,9 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
 import { useNetwork } from "@/context/NetworkContext";
 
 export function BondCard({ bond }: { bond: BondSummary }) {
-  const status = getStatus(bond);
+  const { lang } = useLanguage();
+  const t = getTranslation(lang);
+  const status = getStatus(bond, t);
   const hasJoiner = bond.joiner && bond.joiner !== "0x0000000000000000000000000000000000000000";
   const { isTestnet } = useNetwork();
   const { address } = useAccount();
@@ -172,7 +182,7 @@ export function BondCard({ bond }: { bond: BondSummary }) {
                   whiteSpace: "nowrap",
                 }}
               >
-                ⚠️ Check-in needed
+                ⚠️ {t.statusActionNeeded}
               </span>
             )}
             <button
@@ -205,16 +215,16 @@ export function BondCard({ bond }: { bond: BondSummary }) {
             alignItems: "center",
           }}
         >
-          <Meta label="Each stakes">
+          <Meta label={t.cardEachStakes}>
             <span className="tabular" style={{ color: "var(--ink-2)", fontWeight: 600 }}>
               {formatUsdc(bond.stake)}
             </span>
           </Meta>
-          <Meta label="Deadline">
+          <Meta label={t.cardDeadline}>
             <span style={{ color: "var(--ink-2)" }}>{formatDeadline(bond.deadline)}</span>
           </Meta>
           <LiveCountdown deadline={bond.deadline} settled={bond.settled} />
-          <Meta label="Creator">
+          <Meta label={t.cardCreator}>
             <span className="mono" style={{ color: "var(--ink-2)", fontSize: "0.8rem" }}>
               {shortAddr(bond.creator)}
             </span>
@@ -224,8 +234,8 @@ export function BondCard({ bond }: { bond: BondSummary }) {
         {/* Check-in row */}
         {hasJoiner && (
           <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-            <CheckTag label="Creator" checked={bond.creatorIn} />
-            <CheckTag label="Joiner" checked={bond.joinerIn} />
+            <CheckTag label={t.cardCheckInCreator} checked={bond.creatorIn} />
+            <CheckTag label={t.cardCheckInJoiner} checked={bond.joinerIn} />
           </div>
         )}
       </article>

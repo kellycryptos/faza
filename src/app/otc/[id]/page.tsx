@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useReadContract } from "wagmi";
 import { formatUsdc, formatDeadline, shortAddr, getExplorerAddress } from "@/lib/arc";
 import { useAccount } from "wagmi";
-import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary, getFallbackDeal } from "@/lib/otc-contract";
+import { FAZAOTC_ABI, FAZAOTC_ADDRESS, getFazaOtcAddress, DEAL_STATES, isPvp, type DealSummary, getLocalDeals } from "@/lib/otc-contract";
 import { DealActions } from "@/components/DealActions";
 
 import { useNetwork } from "@/context/NetworkContext";
@@ -22,7 +22,7 @@ export default function OtcPage() {
   const { chainId: walletChainId } = useAccount();
   const { chainId: effectiveChainId, isTestnet, setNetwork } = useNetwork();
   const contractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
-  const fallback = !isNaN(dealId) ? getFallbackDeal(dealId, effectiveChainId) : undefined;
+  const localMatch = !isNaN(dealId) ? getLocalDeals(effectiveChainId).find(d => d.id === dealId) : undefined;
 
   const { data: raw, isLoading, refetch } = useReadContract({
     address: contractAddr || undefined,
@@ -62,22 +62,22 @@ export default function OtcPage() {
         sellerDone: boolean; buyerDone: boolean;
         settled: boolean; state: number;
       })
-    : fallback
+    : localMatch
     ? {
-        seller: fallback.seller as `0x${string}`,
-        buyer: fallback.buyer as `0x${string}`,
-        termsHash: fallback.termsHash as `0x${string}`,
-        asset: fallback.asset as `0x${string}`,
-        size: BigInt(fallback.size),
-        priceUsdc: BigInt(fallback.priceUsdc),
-        stake: BigInt(fallback.stake),
-        deadline: BigInt(fallback.deadline),
-        sellerAttested: fallback.sellerAttested,
-        buyerAttested: fallback.buyerAttested,
-        sellerDone: fallback.sellerDone,
-        buyerDone: fallback.buyerDone,
-        settled: fallback.settled,
-        state: fallback.state,
+        seller: localMatch.seller as `0x${string}`,
+        buyer: localMatch.buyer as `0x${string}`,
+        termsHash: localMatch.termsHash as `0x${string}`,
+        asset: localMatch.asset as `0x${string}`,
+        size: BigInt(localMatch.size),
+        priceUsdc: BigInt(localMatch.priceUsdc),
+        stake: BigInt(localMatch.stake),
+        deadline: BigInt(localMatch.deadline),
+        sellerAttested: localMatch.sellerAttested,
+        buyerAttested: localMatch.buyerAttested,
+        sellerDone: localMatch.sellerDone,
+        buyerDone: localMatch.buyerDone,
+        settled: localMatch.settled,
+        state: localMatch.state,
       }
     : undefined;
 
@@ -124,6 +124,8 @@ export default function OtcPage() {
   }
 
 
+  const isOnchain = Boolean(raw && (raw as any).seller && (raw as any).seller !== ZERO);
+
   const deal: DealSummary = {
     id: dealId, seller: d.seller, buyer: d.buyer, termsHash: d.termsHash,
     asset: d.asset, size: d.size.toString(), priceUsdc: d.priceUsdc.toString(),
@@ -131,6 +133,7 @@ export default function OtcPage() {
     sellerAttested: d.sellerAttested, buyerAttested: d.buyerAttested,
     sellerDone: d.sellerDone, buyerDone: d.buyerDone,
     settled: d.settled, state: Number(d.state),
+    isOnchain,
   };
 
   const pvp = isPvp(deal);
@@ -166,6 +169,21 @@ export default function OtcPage() {
           </span>
           <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
             This deal is on Arc Testnet (5042002). Collateral is testnet USDC.
+          </span>
+        </div>
+      )}
+
+      {/* Template Preview Alert */}
+      {!isOnchain && (
+        <div style={{
+          background: "rgba(245, 166, 35, 0.08)", border: "1px solid rgba(245, 166, 35, 0.3)",
+          borderRadius: 8, padding: "0.6rem 0.9rem", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", background: "rgba(245,166,35,0.2)", color: "var(--amber)", padding: "1px 6px", borderRadius: 4 }}>
+            TEMPLATE PREVIEW
+          </span>
+          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+            This deal is a curated ecosystem template and has not yet been minted on-chain.
           </span>
         </div>
       )}
@@ -292,7 +310,7 @@ export default function OtcPage() {
       {/* Actions */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-card)", padding: "1.25rem" }}>
         <p style={{ ...cap, marginBottom: "0.75rem" }}>Actions</p>
-        <DealActions deal={deal} onRefresh={() => { refetch(); setRefreshKey((k) => k + 1); }} />
+        <DealActions deal={deal} isOnchain={isOnchain} onRefresh={() => { refetch(); setRefreshKey((k) => k + 1); }} />
       </div>
     </Wrap>
   );
