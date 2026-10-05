@@ -248,12 +248,12 @@ export default function HomePage() {
   const bondContractAddr = getFazaBondAddress(effectiveChainId) ?? FAZABOND_ADDRESS;
   const otcContractAddr = getFazaOtcAddress(effectiveChainId) ?? FAZAOTC_ADDRESS;
 
-  const { data: bondCountRaw, refetch: refetchBondCount } = useReadContract({
+  const { data: bondCountRaw, refetch: refetchBondCount, isLoading: isBondCountLoading } = useReadContract({
     address: bondContractAddr || undefined, abi: FAZABOND_ABI,
     functionName: "bondCount", chainId: effectiveChainId,
     query: { enabled: !!bondContractAddr, refetchInterval: 8000 },
   });
-  const { data: dealCountRaw, refetch: refetchDealCount } = useReadContract({
+  const { data: dealCountRaw, refetch: refetchDealCount, isLoading: isDealCountLoading } = useReadContract({
     address: otcContractAddr || undefined, abi: FAZAOTC_ABI,
     functionName: "dealCount", chainId: effectiveChainId,
     query: { enabled: !!otcContractAddr, refetchInterval: 8000 },
@@ -261,8 +261,11 @@ export default function HomePage() {
 
   const bondCount = (bondCountRaw !== undefined ? Number(bondCountRaw) : 0) + (bondSeed > 0 ? 0 : 0);
   const dealCount = (dealCountRaw !== undefined ? Number(dealCountRaw) : 0) + (dealSeed > 0 ? 0 : 0);
-  const { bonds, isLoading: bondsLoading, refetch: refetchBonds } = useBonds(bondCount, effectiveChainId);
-  const { deals, isLoading: dealsLoading, refetch: refetchDeals } = useDeals(dealCount, effectiveChainId);
+  const { bonds, isLoading: bondsHookLoading, refetch: refetchBonds } = useBonds(bondCount, effectiveChainId);
+  const { deals, isLoading: dealsHookLoading, refetch: refetchDeals } = useDeals(dealCount, effectiveChainId);
+
+  const bondsLoading = bondsHookLoading || (bonds.length === 0 && isBondCountLoading);
+  const dealsLoading = dealsHookLoading || (deals.length === 0 && isDealCountLoading);
 
   const handleBondCreated = () => { refetchBondCount(); refetchBonds(); setBondSeed(s => s + 1); };
   const handleDealCreated = () => { refetchDealCount(); refetchDeals(); setDealSeed(s => s + 1); };

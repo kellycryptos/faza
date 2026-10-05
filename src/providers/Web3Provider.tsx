@@ -32,8 +32,16 @@ const config = getDefaultConfig({
   // arcMainnet first → default chain
   chains: [arcMainnet, arcTestnet],
   transports: {
-    [arcMainnet.id]: http(arcMainnet.rpcUrls.default.http[0]),
-    [arcTestnet.id]: http(arcTestnet.rpcUrls.default.http[0]),
+    [arcMainnet.id]: http(arcMainnet.rpcUrls.default.http[0], {
+      timeout: 30_000,
+      retryCount: 4,
+      retryDelay: 1000,
+    }),
+    [arcTestnet.id]: http(arcTestnet.rpcUrls.default.http[0], {
+      timeout: 30_000,
+      retryCount: 4,
+      retryDelay: 1000,
+    }),
   },
   ssr: true,
 });
