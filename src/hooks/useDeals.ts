@@ -2,8 +2,8 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useReadContracts } from "wagmi";
-import { createPublicClient, http } from "viem";
-import { arcMainnet, arcTestnet } from "@/lib/arc";
+import { createPublicClient, http, fallback } from "viem";
+import { arcMainnet, arcTestnet, getRpcUrl } from "@/lib/arc";
 import {
   getFazaOtcAddress,
   FAZAOTC_ABI,
@@ -105,7 +105,10 @@ export function useDeals(count: number, chainId?: number) {
       const chain = targetChainId === 5042002 ? arcTestnet : arcMainnet;
       const client = createPublicClient({
         chain,
-        transport: http(chain.rpcUrls.default.http[0], { timeout: 30_000, retryCount: 3 }),
+        transport: fallback([
+          http(getRpcUrl(targetChainId), { timeout: 20_000, retryCount: 3 }),
+          http(chain.rpcUrls.default.http[0], { timeout: 20_000, retryCount: 3 }),
+        ]),
       });
 
       const total = count > 0 ? count : Number(await client.readContract({

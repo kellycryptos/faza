@@ -76,6 +76,19 @@ export function isSupportedChain(chainId?: number): boolean {
   return chainId === arcMainnet.id || chainId === arcTestnet.id;
 }
 
+/**
+ * Returns the preferred RPC URL for a given chainId.
+ * In the browser, returns same-origin /api/rpc proxy to prevent adblockers
+ * from blocking requests with net::ERR_BLOCKED_BY_CLIENT.
+ */
+export function getRpcUrl(chainId?: number): string {
+  const isTestnet = chainId === arcTestnet.id;
+  if (typeof window !== "undefined") {
+    return isTestnet ? "/api/rpc?network=testnet" : "/api/rpc";
+  }
+  return isTestnet ? arcTestnet.rpcUrls.default.http[0] : arcMainnet.rpcUrls.default.http[0];
+}
+
 /** Explorer tx URL for the given chain (falls back to activeChain). */
 export function getExplorerTx(hash: string, chainId?: number): string {
   const chain = getChain(chainId) ?? activeChain;

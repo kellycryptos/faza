@@ -6,9 +6,9 @@ import {
   RainbowKitProvider,
   darkTheme,
 } from "@rainbow-me/rainbowkit";
-import { WagmiProvider, http } from "wagmi";
+import { WagmiProvider, http, fallback } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { arcMainnet, arcTestnet } from "@/lib/arc";
+import { arcMainnet, arcTestnet, getRpcUrl } from "@/lib/arc";
 import { NetworkProvider } from "@/context/NetworkContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -32,16 +32,30 @@ const config = getDefaultConfig({
   // arcMainnet first → default chain
   chains: [arcMainnet, arcTestnet],
   transports: {
-    [arcMainnet.id]: http(arcMainnet.rpcUrls.default.http[0], {
-      timeout: 30_000,
-      retryCount: 4,
-      retryDelay: 1000,
-    }),
-    [arcTestnet.id]: http(arcTestnet.rpcUrls.default.http[0], {
-      timeout: 30_000,
-      retryCount: 4,
-      retryDelay: 1000,
-    }),
+    [arcMainnet.id]: fallback([
+      http(getRpcUrl(arcMainnet.id), {
+        timeout: 20_000,
+        retryCount: 3,
+        retryDelay: 1000,
+      }),
+      http(arcMainnet.rpcUrls.default.http[0], {
+        timeout: 20_000,
+        retryCount: 3,
+        retryDelay: 1000,
+      }),
+    ]),
+    [arcTestnet.id]: fallback([
+      http(getRpcUrl(arcTestnet.id), {
+        timeout: 20_000,
+        retryCount: 3,
+        retryDelay: 1000,
+      }),
+      http(arcTestnet.rpcUrls.default.http[0], {
+        timeout: 20_000,
+        retryCount: 3,
+        retryDelay: 1000,
+      }),
+    ]),
   },
   ssr: true,
 });
