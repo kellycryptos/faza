@@ -49,7 +49,7 @@ export default function AboutPage() {
           What is Faza?
         </h1>
         <p style={{ color: "var(--accent)", fontSize: "0.92rem", marginTop: "0.5rem", lineHeight: 1.6, fontWeight: 600 }}>
-          The only protocol purpose-built for micro-commitment enforcement on Arc — USDC-as-gas makes sub-$1 stakes economically viable for the first time.
+          Two wallets lock USDC on Arc. Both show up and get it back. One ghosts and the other takes both.
         </p>
         <p style={{ color: "var(--muted)", fontSize: "1.05rem", marginTop: "0.25rem", lineHeight: 1.6 }}>
           Two counterparties lock USDC into smart contract escrow, commit to verified terms, and settle purely onchain — no admin keys, no gas token juggling, no custodian.
@@ -129,6 +129,180 @@ export default function AboutPage() {
               If one wallet ghosts, the wallet that checked in claims both stakes (200% payout).
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Proof of Execution: Grant Demo Bond #2 */}
+      <section
+        style={{
+          background: "var(--surface)",
+          border: "1px solid rgba(46,230,166,0.35)",
+          borderRadius: "var(--radius-card)",
+          padding: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.25rem",
+          boxShadow: "0 0 25px rgba(46,230,166,0.05)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  fontWeight: 800,
+                  background: "var(--accent-dim)",
+                  color: "var(--accent)",
+                  padding: "2px 8px",
+                  borderRadius: "var(--radius-pill)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                ONCHAIN PROOF
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 600 }}>
+                Arc Mainnet (5042)
+              </span>
+            </div>
+            <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+              Live Execution Proof: Bond #2
+            </h2>
+          </div>
+          <Link
+            href="/faza/2"
+            style={{
+              background: "var(--accent)",
+              color: "#050B14",
+              borderRadius: 8,
+              padding: "0.45rem 0.9rem",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            Open Bond #2 Page ↗
+          </Link>
+        </div>
+
+        <p style={{ fontSize: "0.9rem", lineHeight: 1.6, color: "var(--ink-2)", margin: 0 }}>
+          The complete bilateral bond lifecycle executed with real USDC on Arc Mainnet. Two independent wallets locked collateral, verified attendance before the deadline, settled onchain, and both claimed their stake back:
+        </p>
+
+        {/* Bond #2 Metadata Pills */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.6rem" }}>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Bond Title</div>
+            <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", marginTop: 2 }}>Grant demo — show up on Arc</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Total Locked</div>
+            <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)", marginTop: 2 }}>$0.02 USDC ($0.01 each)</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Attendance</div>
+            <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--accent)", marginTop: 2 }}>Both Checked In ✓</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Outcome</div>
+            <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--accent)", marginTop: 2 }}>Settled & Claimed ✓</div>
+          </div>
+        </div>
+
+        {/* Lifecycle Steps Table */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--subtle)", margin: 0 }}>
+            Verifiable Arc Mainnet Transactions
+          </p>
+          {[
+            {
+              step: "1. Create Bond",
+              desc: "Creator staked $0.01 USDC and set deadline",
+              who: "0x1BDA…8E53 (Creator)",
+              tx: "0xdc6f11a2bea74b43aa6033d2068fcd2422489a22a6e6aa47cfaa0c55fed17636",
+            },
+            {
+              step: "2. Join Bond",
+              desc: "Joiner matched $0.01 USDC into escrow",
+              who: "0x0478…759d (Joiner)",
+              tx: "0xd1a1fb22edfdec4775d0f471bf25b021a0900c967098d96e17bd5ba4d5f908ee",
+            },
+            {
+              step: "3. Joiner Check-in",
+              desc: "Joiner registered verified onchain check-in",
+              who: "0x0478…759d (Joiner)",
+              tx: "0xf63500e088137d6dbe373d2e68f661cd77cea46f5f2fb875d63ea6e181d411de",
+            },
+            {
+              step: "4. Creator Check-in",
+              desc: "Creator registered verified onchain check-in",
+              who: "0x1BDA…8E53 (Creator)",
+              tx: "0x5417edc52a08684f8a501868fc9b63445280059dede489d75cce950ccddf0f7f",
+            },
+            {
+              step: "5. Settle Contract",
+              desc: "Mutual attendance confirmed; stakes unlocked for claim",
+              who: "FazaBond Contract",
+              tx: "0x11bde2c4a1af7f1b383849a6f88eb29674cb95b324bc1174e8ba7c2dccd2de8a",
+            },
+            {
+              step: "6. Creator Claim",
+              desc: "Creator claimed $0.01 USDC back to wallet",
+              who: "0x1BDA…8E53 (Creator)",
+              tx: "0x2197371c167fba2ef7ca9e42c72410eb1b26753a40215696ccf35a15ae62e961",
+            },
+            {
+              step: "7. Joiner Claim",
+              desc: "Joiner claimed $0.01 USDC back to wallet",
+              who: "0x0478…759d (Joiner)",
+              tx: "0x5dee26625b4a4ca697f0c7defd08d1a2ba4c070dffb66473ab1b0163a0d652ea",
+            },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+                padding: "0.65rem 0.85rem",
+                background: "rgba(255,255,255,0.015)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>{item.step}</span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--subtle)" }}>· {item.who}</span>
+                </div>
+                <div style={{ fontSize: "0.76rem", color: "var(--muted)", marginTop: 2 }}>{item.desc}</div>
+              </div>
+              <a
+                href={`https://explorer.arc.io/tx/${item.tx}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono"
+                style={{
+                  fontSize: "0.76rem",
+                  color: "var(--accent)",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "var(--accent-dim)",
+                  padding: "3px 8px",
+                  borderRadius: 6,
+                }}
+              >
+                {item.tx.slice(0, 10)}…{item.tx.slice(-6)} ↗
+              </a>
+            </div>
+          ))}
         </div>
       </section>
 

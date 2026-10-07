@@ -1,6 +1,6 @@
 # Faza
 
-**The only protocol purpose-built for micro-commitment enforcement on Arc — using USDC-as-gas to make sub-\$1 stakes economically viable for the first time.**
+**Two wallets lock USDC on Arc. Both show up and get it back. One ghosts and the other takes both.**
 
 *Show up, or forfeit the stake.*
 
@@ -30,18 +30,33 @@ Traditional peer-to-peer agreements have two fatal flaws:
 
 **Arc changes this.** Because USDC is the native gas token on Arc, a \$0.10 commitment costs the same fraction-of-a-cent in fees as a \$10,000 trade. There is no auxiliary gas token to acquire. This is the foundation Faza is built on.
 
-> **Faza is the only protocol purpose-built for micro-commitment enforcement on Arc — using USDC-as-gas to make sub-\$1 stakes economically viable for the first time.**
+> **Two wallets lock USDC on Arc. Both show up and get it back. One ghosts and the other takes both.**
 
-Faza provides two core financial instruments:
+Faza provides two core financial instruments, leading with Show-Up Bonds:
 
-## Live Examples (Arc Mainnet)
+## Live Execution Proof (Arc Mainnet — Bond #2)
 
-Real bonds running on-chain. Shareable links, verifiable on-explorer:
+The grant demo bond (#2) has completed the entire bilateral lifecycle on Arc Mainnet with real USDC movement:
 
-| Bond | Link |
+| Metric | Details |
 |---|---|
-| View all live bonds | [faza-v1.vercel.app](https://faza-v1.vercel.app/) |
-| Arc Mainnet Explorer (FazaBond) | [0x3e925…49df](https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df) |
+| **Demo Bond** | [Grant demo — show up on Arc](https://faza-v1.vercel.app/faza/2) |
+| **Network** | Arc Mainnet (Chain ID `5042`) |
+| **Contract** | [`0x3e925db0bdcb64991f21a8c32b778c3265b349df`](https://explorer.arc.io/address/0x3e925db0bdcb64991f21a8c32b778c3265b349df) |
+| **Total Escrow** | $0.02 USDC ($0.01 per counterparty) |
+| **Outcome** | Mutual compliance verified · Settled & fully claimed back by both parties |
+
+### Complete Onchain Transaction Audit Trail
+
+| Step | Action | Actor | Tx Hash | Explorer |
+|---|---|---|---|---|
+| 1 | `create()` | Creator (`0x1BDA…8E53`) | `0xdc6f11a2…ed17636` | [View Explorer](https://explorer.arc.io/tx/0xdc6f11a2bea74b43aa6033d2068fcd2422489a22a6e6aa47cfaa0c55fed17636) |
+| 2 | `join()` | Joiner (`0x0478…759d`) | `0xd1a1fb22…5f908ee` | [View Explorer](https://explorer.arc.io/tx/0xd1a1fb22edfdec4775d0f471bf25b021a0900c967098d96e17bd5ba4d5f908ee) |
+| 3 | `checkIn()` | Joiner (`0x0478…759d`) | `0xf63500e0…81d411de` | [View Explorer](https://explorer.arc.io/tx/0xf63500e088137d6dbe373d2e68f661cd77cea46f5f2fb875d63ea6e181d411de) |
+| 4 | `checkIn()` | Creator (`0x1BDA…8E53`) | `0x5417edc5…ddf0f7f` | [View Explorer](https://explorer.arc.io/tx/0x5417edc52a08684f8a501868fc9b63445280059dede489d75cce950ccddf0f7f) |
+| 5 | `settle()` | FazaBond Contract | `0x11bde2c4…ccd2de8a` | [View Explorer](https://explorer.arc.io/tx/0x11bde2c4a1af7f1b383849a6f88eb29674cb95b324bc1174e8ba7c2dccd2de8a) |
+| 6 | `claim()` | Creator (`0x1BDA…8E53`) | `0x2197371c…ae62e961` | [View Explorer](https://explorer.arc.io/tx/0x2197371c167fba2ef7ca9e42c72410eb1b26753a40215696ccf35a15ae62e961) |
+| 7 | `claim()` | Joiner (`0x0478…759d`) | `0x5dee2662…0d652ea` | [View Explorer](https://explorer.arc.io/tx/0x5dee26625b4a4ca697f0c7defd08d1a2ba4c070dffb66473ab1b0163a0d652ea) |
 
 
 ### 1. Show-Up Bonds (`FazaBond.sol`)

@@ -114,8 +114,8 @@ export const translations: Record<Language, Translations> = {
 
     // Hero Section
     heroHeadline: "Show up, or forfeit the stake.",
-    heroSubtext: "Two wallets lock USDC on Arc. Both check in before the deadline and the stake returns. One ghosts and the other takes both.",
-    heroPositioning: "The only protocol purpose-built for micro-commitment enforcement on Arc — USDC-as-gas makes sub-$1 stakes economically viable for the first time.",
+    heroSubtext: "Two wallets lock USDC on Arc. Both show up and get it back. One ghosts and the other takes both.",
+    heroPositioning: "Autonomous bilateral coordination with native USDC settlement — deterministic escrow on Arc Mainnet with zero admin keys.",
 
     // 3-Step Summary
     stepStakeLabel: "Stake in",
@@ -212,8 +212,8 @@ export const translations: Record<Language, Translations> = {
 
     // Hero Section
     heroHeadline: "准时履约，否则没收押金。",
-    heroSubtext: "双方在 Arc 链上锁定 USDC 保证金。截止前均打卡则原路退还；若有人违约跑路，履约方通吃全部押金。",
-    heroPositioning: "专为 Arc 链上微承诺设计的执行协议 — USDC 作为原生 Gas 费，让 1 美元以内的押金执行首次具备经济可行性。",
+    heroSubtext: "两个钱包在 Arc 链上锁定 USDC。双方如约履约即可取回，一方违约则另一方全部拿走。",
+    heroPositioning: "Arc 链上原生 USDC 结算的自主双边协作协议 — 纯链上确定性智能合约托管，无管理员密钥。",
 
     // 3-Step Summary
     stepStakeLabel: "存入押金",

@@ -364,6 +364,116 @@ export default function FazaPage() {
         </p>
         <BondActions bond={bond} isOnchain={isOnchain} onRefresh={() => { refetch(); setRefreshKey((k) => k + 1); }} />
       </div>
+
+      {/* Verified Onchain Execution & Claim Proof (Bond #2 Grant Demo) */}
+      {bondId === 2 && !isTestnet && b.settled && (
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid rgba(46,230,166,0.35)",
+            borderRadius: "var(--radius-card)",
+            padding: "1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.85rem",
+            boxShadow: "0 0 20px rgba(46,230,166,0.06)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+            <div>
+              <span
+                style={{
+                  fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
+                  background: "var(--accent-dim)", color: "var(--accent)", padding: "2px 8px", borderRadius: "var(--radius-pill)",
+                }}
+              >
+                ONCHAIN CLAIM PROOF
+              </span>
+              <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--ink)", margin: "4px 0 0" }}>
+                Full Lifecycle Verified on Arc Mainnet
+              </h3>
+            </div>
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)" }}>
+              ✓ Both Claimed ($0.02 USDC)
+            </span>
+          </div>
+
+          <p style={{ fontSize: "0.8rem", color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
+            Both counterparties checked in onchain before deadline. Contract settled with 100% mutual refund, and both wallets successfully claimed their USDC from escrow.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginTop: 4 }}>
+            {[
+              { name: "1. Create", who: "Creator (0x1BDA…8E53)", tx: "0xdc6f11a2bea74b43aa6033d2068fcd2422489a22a6e6aa47cfaa0c55fed17636", tag: "Locked $0.01" },
+              { name: "2. Join", who: "Joiner (0x0478…759d)", tx: "0xd1a1fb22edfdec4775d0f471bf25b021a0900c967098d96e17bd5ba4d5f908ee", tag: "Locked $0.01" },
+              { name: "3. Check-in", who: "Joiner (0x0478…759d)", tx: "0xf63500e088137d6dbe373d2e68f661cd77cea46f5f2fb875d63ea6e181d411de", tag: "Verified" },
+              { name: "4. Check-in", who: "Creator (0x1BDA…8E53)", tx: "0x5417edc52a08684f8a501868fc9b63445280059dede489d75cce950ccddf0f7f", tag: "Verified" },
+              { name: "5. Settle", who: "Contract (FazaBond)", tx: "0x11bde2c4a1af7f1b383849a6f88eb29674cb95b324bc1174e8ba7c2dccd2de8a", tag: "Settled" },
+              { name: "6. Claim", who: "Creator (0x1BDA…8E53)", tx: "0x2197371c167fba2ef7ca9e42c72410eb1b26753a40215696ccf35a15ae62e961", tag: "Claimed $0.01" },
+              { name: "7. Claim", who: "Joiner (0x0478…759d)", tx: "0x5dee26625b4a4ca697f0c7defd08d1a2ba4c070dffb66473ab1b0163a0d652ea", tag: "Claimed $0.01" },
+            ].map((s, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.02)",
+                  border: "1px solid var(--border)", borderRadius: 6, fontSize: "0.78rem",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 700, color: "var(--ink)" }}>{s.name}</span>
+                  <span style={{ color: "var(--subtle)", fontSize: "0.72rem" }}>{s.who}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>{s.tag}</span>
+                  <a
+                    href={`https://explorer.arc.io/tx/${s.tx}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mono"
+                    style={{ fontSize: "0.72rem", color: "var(--accent)", textDecoration: "none" }}
+                  >
+                    tx ↗
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contract Reference */}
+      <div
+        style={{
+          background: "var(--surface)", border: "1px solid var(--border)",
+          borderRadius: "var(--radius-card)", padding: "1rem 1.25rem",
+          display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem",
+        }}
+      >
+        <div>
+          <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--subtle)", margin: 0 }}>
+            Smart Contract
+          </p>
+          <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", margin: 0, marginTop: 2 }}>
+            FazaBond · {isTestnet ? "Arc Testnet (5042002)" : "Arc Mainnet (5042)"}
+          </p>
+        </div>
+        {contractAddr && (
+          <a
+            href={getExplorerAddress(contractAddr, effectiveChainId)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mono"
+            style={{
+              fontSize: "0.78rem", color: "var(--accent)", textDecoration: "none",
+              background: "var(--accent-dim)", padding: "4px 10px", borderRadius: 6,
+              display: "inline-flex", alignItems: "center", gap: 4,
+            }}
+          >
+            {shortAddr(contractAddr)} (Explorer) ↗
+          </a>
+        )}
+      </div>
     </Wrapper>
   );
 }
