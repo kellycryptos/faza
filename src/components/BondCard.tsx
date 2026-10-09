@@ -66,7 +66,7 @@ function Pill({ label, bg, color, dot }: StatusInfo) {
           }}
         />
       )}
-      {label}
+      <span>{label}</span>
     </span>
   );
 }
@@ -81,8 +81,18 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   }, [deadline, settled]);
   if (settled || !label || label === "Ended") return null;
   return (
-    <span className="tabular" style={{ fontSize: "0.78rem", color: "var(--amber)", fontWeight: 600 }}>
-      {lang === "zh" ? `剩余 ${label}` : `${label} left`}
+    <span style={{ fontSize: "0.78rem", color: "var(--amber)", fontWeight: 600 }}>
+      {lang === "zh" ? (
+        <>
+          <span>剩余 </span>
+          <span translate="no" className="notranslate tabular">{label}</span>
+        </>
+      ) : (
+        <>
+          <span translate="no" className="notranslate tabular">{label}</span>
+          <span> left</span>
+        </>
+      )}
     </span>
   );
 }
@@ -216,7 +226,7 @@ export function BondCard({ bond }: { bond: BondSummary }) {
           }}
         >
           <Meta label={t.cardEachStakes}>
-            <span className="tabular" style={{ color: "var(--ink-2)", fontWeight: 600 }}>
+            <span translate="no" className="notranslate tabular" style={{ color: "var(--ink-2)", fontWeight: 600 }}>
               {formatUsdc(bond.stake)}
             </span>
           </Meta>
@@ -225,7 +235,7 @@ export function BondCard({ bond }: { bond: BondSummary }) {
           </Meta>
           <LiveCountdown deadline={bond.deadline} settled={bond.settled} />
           <Meta label={t.cardCreator}>
-            <span className="mono" style={{ color: "var(--ink-2)", fontSize: "0.8rem" }}>
+            <span translate="no" className="notranslate mono" style={{ color: "var(--ink-2)", fontSize: "0.8rem" }}>
               {shortAddr(bond.creator)}
             </span>
           </Meta>

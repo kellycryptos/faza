@@ -159,8 +159,8 @@ function ClaimBanner({
         </div>
         <div>
           <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
-            {t.claimTitle}
-            <span style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 800 }}>
+            <span>{t.claimTitle}</span>
+            <span translate="no" className="notranslate" style={{ fontSize: "0.92rem", color: "var(--accent)", fontWeight: 800 }}>
               {formatUsdc(total)}
             </span>
           </div>
@@ -194,7 +194,14 @@ function ClaimBanner({
               opacity: bondClaimPending || bondWaiting ? 0.7 : 1,
             }}
           >
-            {bondWaiting ? "…" : bondClaimPending ? "…" : `${t.withdrawBondStake} (${formatUsdc(bondAmt)})`}
+            {bondWaiting ? "…" : bondClaimPending ? "…" : (
+              <>
+                <span>{t.withdrawBondStake}</span>
+                <span> (</span>
+                <span translate="no" className="notranslate">{formatUsdc(bondAmt)}</span>
+                <span>)</span>
+              </>
+            )}
           </button>
         )}
         {otcAmt > 0n && otcContractAddr && (
@@ -220,7 +227,14 @@ function ClaimBanner({
               opacity: otcClaimPending || otcWaiting ? 0.7 : 1,
             }}
           >
-            {otcWaiting ? "…" : otcClaimPending ? "…" : `${t.withdrawOtcStake} (${formatUsdc(otcAmt)})`}
+            {otcWaiting ? "…" : otcClaimPending ? "…" : (
+              <>
+                <span>{t.withdrawOtcStake}</span>
+                <span> (</span>
+                <span translate="no" className="notranslate">{formatUsdc(otcAmt)}</span>
+                <span>)</span>
+              </>
+            )}
           </button>
         )}
       </div>

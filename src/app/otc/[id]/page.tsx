@@ -267,7 +267,7 @@ export default function OtcPage() {
       {/* Terms hash */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "0.9rem 1.1rem" }}>
         <p style={cap}>Terms hash (keccak256)</p>
-        <p className="mono" style={{ fontSize: "0.78rem", color: "var(--muted)", wordBreak: "break-all", margin: 0 }}>{d.termsHash}</p>
+        <p translate="no" className="mono notranslate" style={{ fontSize: "0.78rem", color: "var(--muted)", wordBreak: "break-all", margin: 0 }}>{d.termsHash}</p>
         <p style={{ fontSize: "0.7rem", color: "var(--subtle)", marginTop: 5 }}>
           Both parties verified they signed the same term sheet before the deal was locked.
         </p>
@@ -328,7 +328,7 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
   return (
     <div style={{ background: "var(--surface-muted)", borderRadius: 10, padding: "0.7rem 0.9rem" }}>
       <p style={cap}>{label}</p>
-      <p className="tabular" style={{ fontSize: "0.9rem", fontWeight: 600, color: accent ?? "var(--ink-2)", margin: 0 }}>{value}</p>
+      <p translate="no" className="notranslate tabular" style={{ fontSize: "0.9rem", fontWeight: 600, color: accent ?? "var(--ink-2)", margin: 0 }}>{value}</p>
     </div>
   );
 }
@@ -337,7 +337,7 @@ function PartyCard({ role, addr, attested, done, pvp, chainId }: { role: string;
   return (
     <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "1rem", display: "flex", flexDirection: "column", gap: 6 }}>
       <p style={cap}>{role}</p>
-      <a className="mono" href={getExplorerAddress(addr, chainId)} target="_blank" rel="noopener noreferrer"
+      <a className="mono notranslate" translate="no" href={getExplorerAddress(addr, chainId)} target="_blank" rel="noopener noreferrer"
         style={{ fontSize: "0.78rem", color: "var(--muted)", textDecoration: "none", wordBreak: "break-all" }}>
         {shortAddr(addr)}
       </a>

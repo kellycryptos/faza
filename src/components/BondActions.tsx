@@ -282,7 +282,7 @@ export function BondActions({ bond, onRefresh, isOnchain }: Props) {
             <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase", margin: 0 }}>
               Claimable
             </p>
-            <p className="tabular" style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
+            <p translate="no" className="notranslate tabular" style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>
               {formatUsdc(claimableAmt as bigint)}
             </p>
           </div>
@@ -325,6 +325,7 @@ export function BondActions({ bond, onRefresh, isOnchain }: Props) {
 
       {lastTx && (
         <a href={getExplorerTx(lastTx, targetChain)} target="_blank" rel="noopener noreferrer"
+          translate="no" className="notranslate"
           style={{ fontSize: "0.8rem", color: "var(--accent)", fontFamily: "'JetBrains Mono', monospace" }}>
           {lastTx.slice(0, 22)}… (explorer)
         </a>

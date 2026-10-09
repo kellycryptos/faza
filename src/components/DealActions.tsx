@@ -181,7 +181,7 @@ export function DealActions({
         <div style={{ background: "rgba(46,230,166,0.07)", border: "1px solid var(--accent)", borderRadius: 10, padding: "0.8rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", letterSpacing: "0.07em", textTransform: "uppercase", margin: 0 }}>Claimable</p>
-            <p className="tabular" style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>{formatUsdc(claimableAmt as bigint)}</p>
+            <p translate="no" className="notranslate tabular" style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ink)", margin: 0 }}>{formatUsdc(claimableAmt as bigint)}</p>
           </div>
           <Btn label="Claim USDC" busy={["submitting", "tx-wait"].includes(claimStep)} busyLabel="Claiming…" orbState="connecting" onClick={() => simpleWrite("claim", setClaimStep, "Claim")} primary />
         </div>
@@ -217,6 +217,7 @@ export function DealActions({
 
       {lastTx && (
         <a href={getExplorerTx(lastTx, targetChain)} target="_blank" rel="noopener noreferrer"
+          translate="no" className="notranslate"
           style={{ fontSize: "0.78rem", color: "var(--accent)", fontFamily: "monospace" }}>
           {lastTx.slice(0, 22)}… (explorer)
         </a>

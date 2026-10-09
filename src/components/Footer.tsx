@@ -419,7 +419,8 @@ export function Footer() {
                 href={getExplorerAddress(bondAddress, chainId)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mono"
+                translate="no"
+                className="mono notranslate"
                 style={{ color: "var(--accent)", textDecoration: "none" }}
               >
                 {shortAddr(bondAddress)}
@@ -458,7 +459,8 @@ export function Footer() {
                 href={getExplorerAddress(otcAddress, chainId)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mono"
+                translate="no"
+                className="mono notranslate"
                 style={{ color: isTestnet ? "var(--amber)" : "var(--accent)", textDecoration: "none" }}
               >
                 {shortAddr(otcAddress)}

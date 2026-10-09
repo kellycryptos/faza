@@ -315,7 +315,7 @@ function ClaimableFundsBadge({ address, chainId }: { address?: `0x${string}`; ch
       }}
     >
       <span>🎁</span>
-      <span className="tabular">{formatUsdc(total)}</span>
+      <span translate="no" className="notranslate tabular">{formatUsdc(total)}</span>
       <span style={{ fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#050B14", background: "var(--accent)", padding: "1px 5px", borderRadius: 4 }}>
         Claim
       </span>
@@ -415,7 +415,7 @@ function UsdcBalance({ address, chainId }: { address?: `0x${string}`; chainId?: 
         whiteSpace: "nowrap",
       }}
     >
-      <span className="tabular" style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--ink-2)" }}>
+      <span translate="no" className="notranslate tabular" style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--ink-2)" }}>
         {formatUsdc(data as bigint)}
       </span>
       <span style={{ fontSize: "0.68rem", color: "var(--subtle)", fontWeight: 600 }}>USDC</span>
@@ -806,7 +806,7 @@ export function Navbar() {
                       boxShadow: "0 0 8px var(--accent-glow)",
                     }}
                   />
-                  <span className="mono" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--ink)" }}>
+                  <span translate="no" className="mono notranslate" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--ink)" }}>
                     {shortAddr(address)}
                   </span>
                 </div>
@@ -862,7 +862,7 @@ export function Navbar() {
                     Arc Gas &amp; Settlement Balance
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 2 }}>
-                    <span className="tabular" style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--ink)" }}>
+                    <span translate="no" className="notranslate tabular" style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--ink)" }}>
                       {usdcBalance !== undefined ? formatUsdc(usdcBalance) : "—"}
                     </span>
                     <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--muted)" }}>USDC</span>
@@ -921,7 +921,7 @@ export function Navbar() {
                     <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--accent)" }}>
                       🎁 Unclaimed Stakes Available
                     </div>
-                    <div className="tabular" style={{ fontSize: "1rem", fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
+                    <div translate="no" className="notranslate tabular" style={{ fontSize: "1rem", fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
                       {formatUsdc(totalClaimable)}
                     </div>
                   </div>

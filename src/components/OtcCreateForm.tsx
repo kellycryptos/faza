@@ -211,7 +211,11 @@ export function OtcCreateForm({ onCreated }: Props) {
           <div>
             <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)" }}>{submittedTitle}</div>
             <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
-              Price: {formatUsdc(priceRaw)} · Stake: {formatUsdc(stakeRaw)} · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}
+              <span>Price: </span>
+              <span translate="no" className="notranslate">{formatUsdc(priceRaw)}</span>
+              <span> · Stake: </span>
+              <span translate="no" className="notranslate">{formatUsdc(stakeRaw)}</span>
+              <span> · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}</span>
             </div>
           </div>
           <Link
@@ -282,6 +286,8 @@ export function OtcCreateForm({ onCreated }: Props) {
             href={getExplorerTx(lastTx, targetChain)}
             target="_blank"
             rel="noopener noreferrer"
+            translate="no"
+            className="notranslate"
             style={{
               fontSize: "0.78rem",
               color: "var(--subtle)",
@@ -400,6 +406,7 @@ export function OtcCreateForm({ onCreated }: Props) {
 
       {lastTx && (
         <a href={getExplorerTx(lastTx, targetChain)} target="_blank" rel="noopener noreferrer"
+          translate="no" className="notranslate"
           style={{ fontSize: "0.78rem", color: "var(--accent)", fontFamily: "monospace" }}>
           {lastTx.slice(0, 22)}… (explorer)
         </a>

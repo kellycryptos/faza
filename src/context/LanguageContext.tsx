@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import "@/lib/translate-safe-dom";
 
 export type Language = "en" | "zh";
 
@@ -20,29 +21,37 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    let initialLang: Language = "en";
     try {
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get("lang")?.toLowerCase();
       if (urlLang === "zh" || urlLang === "cn") {
-        setLangState("zh");
+        initialLang = "zh";
       } else if (urlLang === "en") {
-        setLangState("en");
+        initialLang = "en";
       } else {
         const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
         if (saved === "zh" || saved === "en") {
-          setLangState(saved);
+          initialLang = saved;
         } else {
-          setLangState("en");
+          initialLang = "en";
         }
       }
     } catch {
-      setLangState("en");
+      initialLang = "en";
+    }
+    setLangState(initialLang);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = initialLang === "zh" ? "zh-CN" : "en";
     }
     setMounted(true);
   }, []);
 
   const setLang = useCallback((nextLang: Language) => {
     setLangState(nextLang);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = nextLang === "zh" ? "zh-CN" : "en";
+    }
     try {
       localStorage.setItem(STORAGE_KEY, nextLang);
       const url = new URL(window.location.href);

@@ -3,6 +3,7 @@ import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -76,7 +77,9 @@ export default function RootLayout({
         <Web3Provider>
           <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Navbar />
-            <main style={{ paddingTop: "60px", flex: 1 }}>{children}</main>
+            <main style={{ paddingTop: "60px", flex: 1 }}>
+              <ClientErrorBoundary>{children}</ClientErrorBoundary>
+            </main>
             <Footer />
           </div>
         </Web3Provider>

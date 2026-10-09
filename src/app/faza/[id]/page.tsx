@@ -277,13 +277,15 @@ export default function FazaPage() {
           Total locked
         </span>
         <span
-          className="tabular display"
+          translate="no"
+          className="notranslate tabular display"
           style={{ fontSize: "clamp(2rem, 6vw, 3rem)", fontWeight: 800, color: "var(--accent)", lineHeight: 1 }}
         >
           {formatUsdc(total)}
         </span>
         <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-          {formatUsdc(b.stake)} each · {hasJoiner ? "2 parties" : "1 party (waiting for joiner)"}
+          <span translate="no" className="notranslate">{formatUsdc(b.stake)}</span>
+          <span> each · {hasJoiner ? "2 parties" : "1 party (waiting for joiner)"}</span>
         </span>
       </div>
 
@@ -306,7 +308,7 @@ export default function FazaPage() {
         {!expired && !b.settled && countdown && (
           <div style={{ textAlign: "right" }}>
             <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--subtle)", marginBottom: 2 }}>Time left</p>
-            <span className="tabular" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}>{countdown}</span>
+            <span translate="no" className="notranslate tabular" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}>{countdown}</span>
           </div>
         )}
         {expired && !b.settled && (
@@ -463,7 +465,8 @@ export default function FazaPage() {
             href={getExplorerAddress(contractAddr, effectiveChainId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mono"
+            translate="no"
+            className="mono notranslate"
             style={{
               fontSize: "0.78rem", color: "var(--accent)", textDecoration: "none",
               background: "var(--accent-dim)", padding: "4px 10px", borderRadius: 6,
@@ -494,7 +497,8 @@ function PartyCard({ role, addr, checkedIn, chainId }: { role: string; addr: str
         href={getExplorerAddress(addr, chainId)}
         target="_blank"
         rel="noopener noreferrer"
-        className="mono"
+        translate="no"
+        className="mono notranslate"
         style={{ fontSize: "0.82rem", color: "var(--ink-2)", textDecoration: "none" }}
       >
         {shortAddr(addr)}

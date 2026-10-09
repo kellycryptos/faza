@@ -136,7 +136,8 @@ function ClaimRow({
     >
       <div>
         <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
-          🎁 Unclaimed funds: {formatUsdc(total)}
+          <span>🎁 Unclaimed funds: </span>
+          <span translate="no" className="notranslate">{formatUsdc(total)}</span>
         </div>
         <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
           Settled stakes or refunds waiting in contract escrow
@@ -154,7 +155,12 @@ function ClaimRow({
               opacity: bondPending || bondWaiting ? 0.6 : 1,
             }}
           >
-            {bondPending || bondWaiting ? "Claiming…" : `Claim bond ${formatUsdc(bondAmt)}`}
+            {bondPending || bondWaiting ? "Claiming…" : (
+              <>
+                <span>Claim bond </span>
+                <span translate="no" className="notranslate">{formatUsdc(bondAmt)}</span>
+              </>
+            )}
           </button>
         )}
         {otcAmt > 0n && otcContractAddr && (
@@ -168,7 +174,12 @@ function ClaimRow({
               opacity: otcPending || otcWaiting ? 0.6 : 1,
             }}
           >
-            {otcPending || otcWaiting ? "Claiming…" : `Claim OTC ${formatUsdc(otcAmt)}`}
+            {otcPending || otcWaiting ? "Claiming…" : (
+              <>
+                <span>Claim OTC </span>
+                <span translate="no" className="notranslate">{formatUsdc(otcAmt)}</span>
+              </>
+            )}
           </button>
         )}
       </div>
@@ -223,7 +234,11 @@ function BondRow({ bond, address, now }: { bond: BondSummary; address: string; n
           )}
         </div>
         <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 3 }}>
-          #{bond.id} · {formatUsdc(bond.stake)} each · Bond #{bond.id}
+          <span translate="no" className="notranslate">#{bond.id}</span>
+          <span> · </span>
+          <span translate="no" className="notranslate">{formatUsdc(bond.stake)}</span>
+          <span> each · Bond </span>
+          <span translate="no" className="notranslate">#{bond.id}</span>
         </div>
       </div>
       <span style={{
@@ -286,7 +301,13 @@ function DealRow({ deal, address, now }: { deal: DealSummary; address: string; n
           )}
         </div>
         <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 3 }}>
-          #{deal.id} · {formatUsdc(deal.priceUsdc)} price · stake {formatUsdc(deal.stake)} · seller {shortAddr(deal.seller)}
+          <span translate="no" className="notranslate">#{deal.id}</span>
+          <span> · </span>
+          <span translate="no" className="notranslate">{formatUsdc(deal.priceUsdc)}</span>
+          <span> price · stake </span>
+          <span translate="no" className="notranslate">{formatUsdc(deal.stake)}</span>
+          <span> · seller </span>
+          <span translate="no" className="notranslate mono">{shortAddr(deal.seller)}</span>
         </div>
       </div>
       <span style={{
@@ -406,7 +427,7 @@ export function MyActivityDashboard({
             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
               My Bonds
             </span>
-            <span style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 8 }}>
+            <span translate="no" className="notranslate" style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 8 }}>
               {shortAddr(address)}
             </span>
             <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
@@ -548,7 +569,7 @@ export function MyActivityDashboard({
           <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--ink)" }}>
             My OTC Deals
           </span>
-          <span style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 8 }}>
+          <span translate="no" className="notranslate" style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 8 }}>
             {shortAddr(address)}
           </span>
           <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>

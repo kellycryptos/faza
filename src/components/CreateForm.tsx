@@ -244,7 +244,9 @@ export function CreateForm({ onCreated }: Props) {
           <div>
             <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)" }}>{submittedTitle}</div>
             <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 2 }}>
-              Stake: {formatUsdc(stakeRawForCreate)} · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}
+              <span>Stake: </span>
+              <span translate="no" className="notranslate">{formatUsdc(stakeRawForCreate)}</span>
+              <span> · {isTestnet ? "Arc Testnet (Sandbox)" : "Arc Mainnet"}</span>
             </div>
           </div>
           <Link
@@ -315,6 +317,8 @@ export function CreateForm({ onCreated }: Props) {
             href={getExplorerTx(doneTxHash, targetChain)}
             target="_blank"
             rel="noopener noreferrer"
+            translate="no"
+            className="notranslate"
             style={{
               fontSize: "0.78rem",
               color: "var(--subtle)",

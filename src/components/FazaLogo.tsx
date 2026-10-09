@@ -125,6 +125,8 @@ export function FazaLogo({
           }}
         >
           <span
+            translate="no"
+            className="notranslate"
             style={{
               fontSize: `${Math.max(16, Math.round(size * 0.72))}px`,
               fontWeight: 800,

@@ -39,8 +39,18 @@ function LiveCountdown({ deadline, settled }: { deadline: number; settled: boole
   }, [deadline, settled]);
   if (settled || !label || label === "Ended") return null;
   return (
-    <span className="tabular" style={{ fontSize: "0.75rem", color: "var(--amber)", fontWeight: 600 }}>
-      {lang === "zh" ? `剩余 ${label}` : `${label} left`}
+    <span style={{ fontSize: "0.75rem", color: "var(--amber)", fontWeight: 600 }}>
+      {lang === "zh" ? (
+        <>
+          <span>剩余 </span>
+          <span translate="no" className="notranslate tabular">{label}</span>
+        </>
+      ) : (
+        <>
+          <span translate="no" className="notranslate tabular">{label}</span>
+          <span> left</span>
+        </>
+      )}
     </span>
   );
 }
@@ -229,7 +239,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
       <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--subtle)" }}>{label}</span>
-      <span className="tabular" style={{ fontSize: "0.88rem", color: "var(--ink-2)", fontWeight: 500 }}>{value}</span>
+      <span translate="no" className="notranslate tabular" style={{ fontSize: "0.88rem", color: "var(--ink-2)", fontWeight: 500 }}>{value}</span>
     </div>
   );
 }
@@ -244,7 +254,7 @@ function PartyTag({ role, addr, attested }: { role: string; addr: string; attest
       }}
     >
       <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{role}</span>
-      <span className="mono" style={{ fontSize: "0.72rem", color: "var(--ink-2)" }}>{shortAddr(addr)}</span>
+      <span translate="no" className="notranslate mono" style={{ fontSize: "0.72rem", color: "var(--ink-2)" }}>{shortAddr(addr)}</span>
       {attested && <span style={{ fontSize: "0.65rem", color: "var(--accent)", fontWeight: 700 }}>attested</span>}
     </div>
   );

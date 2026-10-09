@@ -9,6 +9,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     <div
       role="group"
       aria-label="Language selection"
+      translate="no"
+      className="notranslate"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -23,6 +25,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     >
       <button
         type="button"
+        translate="no"
+        className="notranslate"
         onClick={() => setLang("en")}
         title="Switch to English"
         style={{
@@ -43,6 +47,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       </button>
       <button
         type="button"
+        translate="no"
+        className="notranslate"
         onClick={() => setLang("zh")}
         title="切换至简体中文"
         style={{
