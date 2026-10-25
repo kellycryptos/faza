@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
@@ -74,15 +75,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Web3Provider>
-          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <Navbar />
-            <main style={{ paddingTop: "60px", flex: 1 }}>
-              <ClientErrorBoundary>{children}</ClientErrorBoundary>
-            </main>
-            <Footer />
-          </div>
-        </Web3Provider>
+        <ThemeProvider>
+          <Web3Provider>
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+              <Navbar />
+              <main style={{ paddingTop: "60px", flex: 1 }}>
+                <ClientErrorBoundary>{children}</ClientErrorBoundary>
+              </main>
+              <Footer />
+            </div>
+          </Web3Provider>
+        </ThemeProvider>
       </body>
     </html>
   );

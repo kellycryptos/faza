@@ -30,7 +30,43 @@
   --radius-card:  16px;
   --radius-pill:  999px;
   --radius-btn:   10px;
+
+  /* Navbar frosted glass */
+  --navbar-bg:    rgba(7,8,11,0.88);
 }
+
+/* ── Light theme overrides ── */
+[data-theme="light"] {
+  --navbar-bg:    rgba(245,247,250,0.90);
+  --bg:           #F5F7FA;
+  --surface:      #FFFFFF;
+  --surface-muted:#EEF1F7;
+  --border:       #DDE3EE;
+  --border-strong:#C4CEDF;
+
+  --ink:          #0E131C;
+  --ink-2:        #2A3547;
+  --muted:        #5A6478;
+  --subtle:       #9AA3B2;
+
+  --accent:       #12B37A;
+  --accent-dim:   rgba(18, 179, 122, 0.10);
+  --accent-glow:  rgba(18, 179, 122, 0.20);
+
+  --success:      #12B37A;
+  --danger:       #D93F5C;
+  --danger-dim:   rgba(217, 63, 92, 0.10);
+  --amber:        #C47F00;
+  --amber-dim:    rgba(196, 127, 0, 0.10);
+}
+
+[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--border-strong); }
 
 *,
 *::before,
