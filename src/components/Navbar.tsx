@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ConnectKitButton } from "connectkit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSwitchChain, useReadContract } from "wagmi";
 import { erc20Abi } from "viem";
 import {
@@ -216,7 +216,7 @@ export function Navbar() {
       <UsdcBalance address={address} chainId={chainId} />
       <NetworkDropdown chainId={chainId} />
       <ThemeToggle />
-      <ConnectKitButton />
+      <ConnectButton />
     </header>
   );
 }
