@@ -5,12 +5,14 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
   darkTheme,
+  lightTheme,
 } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http, fallback } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { arcMainnet, arcTestnet, getRpcUrl } from "@/lib/arc";
 import { NetworkProvider } from "@/context/NetworkContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
 const walletConnectProjectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ||
@@ -81,28 +83,47 @@ function getQueryClient() {
   }
 }
 
+function RainbowKitThemeAdapter({ children }: { children: React.ReactNode }) {
+  const { isDark } = useTheme();
+
+  return (
+    <RainbowKitProvider
+      initialChain={arcMainnet}
+      theme={
+        isDark
+          ? darkTheme({
+              accentColor: "#2EE6A6",
+              accentColorForeground: "#050B14",
+              borderRadius: "large",
+              fontStack: "system",
+              overlayBlur: "small",
+            })
+          : lightTheme({
+              accentColor: "#059669",
+              accentColorForeground: "#FFFFFF",
+              borderRadius: "large",
+              fontStack: "system",
+              overlayBlur: "small",
+            })
+      }
+    >
+      <LanguageProvider>
+        <NetworkProvider>{children}</NetworkProvider>
+      </LanguageProvider>
+    </RainbowKitProvider>
+  );
+}
+
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          initialChain={arcMainnet}
-          theme={darkTheme({
-            accentColor: "#2EE6A6",
-            accentColorForeground: "#050B14",
-            borderRadius: "large",
-            fontStack: "system",
-            overlayBlur: "small",
-          })}
-        >
-          <LanguageProvider>
-            <NetworkProvider>{children}</NetworkProvider>
-          </LanguageProvider>
-        </RainbowKitProvider>
+        <ThemeProvider>
+          <RainbowKitThemeAdapter>{children}</RainbowKitThemeAdapter>
+        </ThemeProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
 }
-

@@ -111,7 +111,7 @@ export default function OtcPage() {
           <button
             onClick={() => setNetwork(isTestnet ? "mainnet" : "testnet")}
             style={{
-              background: "var(--accent)", color: "#050B14", border: "none",
+              background: "var(--accent)", color: "var(--accent-foreground, #050B14)", border: "none",
               borderRadius: "var(--radius-btn)", padding: "0.5rem 1.1rem",
               fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
             }}

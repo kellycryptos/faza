@@ -18,8 +18,8 @@ export function ProtocolGuide() {
     <div
       style={{
         background: isTestnet
-          ? "linear-gradient(135deg, rgba(35, 26, 12, 0.45) 0%, rgba(20, 16, 10, 0.6) 100%)"
-          : "linear-gradient(135deg, rgba(18, 52, 90, 0.4) 0%, rgba(13, 27, 47, 0.6) 100%)",
+          ? "var(--guide-testnet-bg)"
+          : "var(--guide-mainnet-bg)",
         border: isTestnet
           ? "1px solid rgba(245, 166, 35, 0.35)"
           : "1px solid rgba(46, 230, 166, 0.35)",

@@ -113,7 +113,7 @@ export default function AboutPage() {
           A two-wallet mutual stake contract. Both parties lock equal USDC collateral, establish a deadline, and must submit an onchain <span className="mono" style={{ fontSize: "0.85em" }}>checkIn()</span> before time expires.
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
             <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>
               ✓ Mutual Attendance
             </div>
@@ -121,7 +121,7 @@ export default function AboutPage() {
               Both wallets check in before deadline. 100% of staked capital is refunded to each party.
             </div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
             <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--danger)", marginBottom: 4 }}>
               ✕ Ghosting Penalty
             </div>
@@ -173,7 +173,7 @@ export default function AboutPage() {
             href="/faza/2"
             style={{
               background: "var(--accent)",
-              color: "#050B14",
+              color: "var(--accent-foreground, #050B14)",
               borderRadius: 8,
               padding: "0.45rem 0.9rem",
               fontSize: "0.8rem",
@@ -194,19 +194,19 @@ export default function AboutPage() {
 
         {/* Bond #2 Metadata Pills */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.6rem" }}>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
             <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Bond Title</div>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--ink)", marginTop: 2 }}>Grant demo — show up on Arc</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
             <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Total Locked</div>
             <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)", marginTop: 2 }}>$0.02 USDC ($0.01 each)</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
             <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Attendance</div>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--accent)", marginTop: 2 }}>Both Checked In ✓</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.7rem" }}>
             <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--subtle)", textTransform: "uppercase" }}>Outcome</div>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--accent)", marginTop: 2 }}>Settled & Claimed ✓</div>
           </div>
@@ -270,7 +270,7 @@ export default function AboutPage() {
                 flexWrap: "wrap",
                 gap: "0.5rem",
                 padding: "0.65rem 0.85rem",
-                background: "rgba(255,255,255,0.015)",
+                background: "var(--surface-muted)",
                 border: "1px solid var(--border)",
                 borderRadius: 8,
               }}
@@ -340,7 +340,7 @@ export default function AboutPage() {
           A bilateral agreement ticket that hashes commercial terms onchain using <span className="mono" style={{ fontSize: "0.85em" }}>keccak256</span>. The buyer can only enter the contract if their local copy of the terms computes to the identical hash.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
             <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
               1. Atomic Onchain PvP Token Swaps
             </div>
@@ -348,7 +348,7 @@ export default function AboutPage() {
               For Arc ERC-20 tokens: Buyer locks USDC purchase price and collateral stake; seller locks collateral stake. At settlement, the contract executes an atomic exchange: tokens to buyer, USDC to seller. If seller defaults, buyer receives a full refund of price plus both stakes.
             </div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
+          <div style={{ background: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.85rem" }}>
             <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
               2. Offchain Asset Agreements with Escrowed Bond
             </div>

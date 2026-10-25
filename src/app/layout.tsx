@@ -72,7 +72,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('faza_theme');
+                  var theme = 'dark';
+                  if (saved === 'light' || saved === 'dark') {
+                    theme = saved;
+                  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    theme = 'light';
+                  }
+                  document.documentElement.setAttribute('data-theme', theme);
+                  document.documentElement.style.colorScheme = theme;
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <Web3Provider>
           <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>

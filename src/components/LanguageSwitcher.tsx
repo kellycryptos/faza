@@ -10,7 +10,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       role="group"
       aria-label="Language selection"
       translate="no"
-      className="notranslate"
+      className="notranslate language-switcher-wrap"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -35,7 +35,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
           padding: compact ? "2px 7px" : "2px 9px",
           fontSize: "0.68rem",
           fontWeight: !isZh ? 800 : 500,
-          background: !isZh ? "rgba(46, 230, 166, 0.15)" : "transparent",
+          background: !isZh ? "var(--accent-dim)" : "transparent",
           color: !isZh ? "var(--accent)" : "var(--muted)",
           cursor: "pointer",
           transition: "all 0.15s ease",
@@ -57,7 +57,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
           padding: compact ? "2px 7px" : "2px 9px",
           fontSize: "0.68rem",
           fontWeight: isZh ? 800 : 500,
-          background: isZh ? "rgba(46, 230, 166, 0.15)" : "transparent",
+          background: isZh ? "var(--accent-dim)" : "transparent",
           color: isZh ? "var(--accent)" : "var(--muted)",
           cursor: "pointer",
           transition: "all 0.15s ease",

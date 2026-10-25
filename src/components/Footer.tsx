@@ -32,7 +32,7 @@ export function Footer() {
   return (
     <footer
       style={{
-        background: "linear-gradient(180deg, #07080B 0%, #0A0E17 100%)",
+        background: "var(--footer-bg)",
         borderTop: "1px solid var(--border)",
         color: "var(--ink-2)",
         position: "relative",
@@ -49,7 +49,7 @@ export function Footer() {
           height: 1,
           background: isTestnet
             ? "linear-gradient(90deg, transparent 0%, rgba(245, 166, 35, 0.4) 30%, rgba(245, 166, 35, 0.8) 50%, rgba(245, 166, 35, 0.4) 70%, transparent 100%)"
-            : "linear-gradient(90deg, transparent 0%, rgba(46, 230, 166, 0.3) 30%, rgba(46, 230, 166, 0.7) 50%, rgba(46, 230, 166, 0.3) 70%, transparent 100%)",
+            : "linear-gradient(90deg, transparent 0%, var(--accent-glow) 30%, var(--accent) 50%, var(--accent-glow) 70%, transparent 100%)",
         }}
       />
 
@@ -414,7 +414,7 @@ export function Footer() {
                 fontSize: "0.76rem",
               }}
             >
-              <span style={{ color: "var(--subtle)", fontWeight: 600 }}>Bond:</span>
+              <span style={{ color: "var(--muted)", fontWeight: 600 }}>Bond:</span>
               <a
                 href={getExplorerAddress(bondAddress, chainId)}
                 target="_blank"
@@ -454,7 +454,7 @@ export function Footer() {
                 fontSize: "0.76rem",
               }}
             >
-              <span style={{ color: "var(--subtle)", fontWeight: 600 }}>OTC:</span>
+              <span style={{ color: "var(--muted)", fontWeight: 600 }}>OTC:</span>
               <a
                 href={getExplorerAddress(otcAddress, chainId)}
                 target="_blank"
@@ -486,7 +486,7 @@ export function Footer() {
         {/* Legal Disclaimer Box */}
         <div
           style={{
-            borderTop: "1px solid rgba(28, 36, 51, 0.6)",
+            borderTop: "1px solid var(--border)",
             paddingTop: "1.5rem",
             display: "flex",
             flexDirection: "column",

@@ -142,7 +142,7 @@ export function BondCard({ bond }: { bond: BondSummary }) {
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = isTestnet ? "var(--amber)" : "var(--border-strong)";
-          e.currentTarget.style.background = "#13181F";
+          e.currentTarget.style.background = "var(--surface-muted)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = isTestnet ? "rgba(245, 166, 35, 0.25)" : "var(--border)";

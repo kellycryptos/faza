@@ -253,7 +253,7 @@ export function CreateForm({ onCreated }: Props) {
             href={bondUrl}
             style={{
               background: "var(--accent)",
-              color: "#050B14",
+              color: "var(--accent-foreground, #050B14)",
               borderRadius: "var(--radius-btn)",
               padding: "0.45rem 1rem",
               fontSize: "0.82rem",

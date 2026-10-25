@@ -23,6 +23,7 @@ import { useNetwork } from "@/context/NetworkContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { t } from "@/lib/translations";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
   const [open, setOpen] = useState(false);
@@ -110,7 +111,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
             position: "absolute",
             top: "calc(100% + 8px)",
             right: 0,
-            background: "#0D1117",
+            background: "var(--surface)",
             border: "1px solid var(--border-strong)",
             borderRadius: 14,
             overflow: "hidden",
@@ -118,7 +119,7 @@ function NetworkDropdown({ walletChainId }: { walletChainId?: number }) {
             minWidth: 230,
             maxWidth: "min(320px, calc(100vw - 20px))",
             zIndex: 100,
-            boxShadow: "0 12px 36px rgba(0,0,0,0.65)",
+            boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
             padding: "4px",
           }}
         >
@@ -316,7 +317,7 @@ function ClaimableFundsBadge({ address, chainId }: { address?: `0x${string}`; ch
     >
       <span>🎁</span>
       <span translate="no" className="notranslate tabular">{formatUsdc(total)}</span>
-      <span style={{ fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#050B14", background: "var(--accent)", padding: "1px 5px", borderRadius: 4 }}>
+      <span style={{ fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--accent-foreground, #050B14)", background: "var(--accent)", padding: "1px 5px", borderRadius: 4 }}>
         Claim
       </span>
     </Link>
@@ -566,6 +567,7 @@ export function Navbar() {
             {t("navAbout", lang)}
           </Link>
           <LanguageSwitcher />
+          <ThemeToggle />
         </nav>
 
         {/* Spacer */}
@@ -582,6 +584,9 @@ export function Navbar() {
           {/* Mobile-only compact claim icon */}
           <div className="show-on-mobile">
             <MobileClaimIcon address={address} chainId={activeChainId} />
+          </div>
+          <div className="show-on-mobile">
+            <ThemeToggle compact={true} />
           </div>
 
           {/* Network Switcher Dropdown */}
@@ -627,7 +632,7 @@ export function Navbar() {
                       type="button"
                       style={{
                         background: "var(--accent)",
-                        color: "#050B14",
+                        color: "var(--accent-foreground, #050B14)",
                         border: "none",
                         borderRadius: "var(--radius-pill)",
                         padding: "0.38rem 0.85rem",
@@ -772,7 +777,7 @@ export function Navbar() {
             right: 0,
             bottom: 0,
             zIndex: 49,
-            background: "rgba(7, 8, 11, 0.98)",
+            background: "var(--navbar-drawer-bg, rgba(7, 8, 11, 0.98))",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
             overflowY: "auto",
@@ -930,7 +935,7 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     style={{
                       background: "var(--accent)",
-                      color: "#050B14",
+                      color: "var(--accent-foreground, #050B14)",
                       padding: "0.4rem 0.85rem",
                       borderRadius: "var(--radius-btn)",
                       fontSize: "0.76rem",
@@ -972,7 +977,7 @@ export function Navbar() {
                     type="button"
                     style={{
                       background: "var(--accent)",
-                      color: "#050B14",
+                      color: "var(--accent-foreground, #050B14)",
                       border: "none",
                       borderRadius: "var(--radius-btn)",
                       padding: "0.6rem 1rem",
@@ -1057,7 +1062,7 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Language Switcher Card in Drawer */}
+          {/* Preferences: Language & Theme in Drawer */}
           <div
             style={{
               background: "var(--surface)",
@@ -1065,14 +1070,27 @@ export function Navbar() {
               borderRadius: "var(--radius-card)",
               padding: "0.85rem 1rem",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              gap: "0.75rem",
             }}
           >
-            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--subtle)" }}>
-              {lang === "zh" ? "语言设置 / Language" : "Language / 语言"}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em", color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                <span>🌐</span>
+                <span>{lang === "zh" ? "语言 / Language" : "Language / 语言"}</span>
+              </div>
+              <LanguageSwitcher />
             </div>
-            <LanguageSwitcher />
+
+            <div style={{ height: 1, background: "var(--border)" }} />
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em", color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
+                <span>🌓</span>
+                <span>{t("themeLabel", lang)}</span>
+              </div>
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Navigation Links List */}

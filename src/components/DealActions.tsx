@@ -158,7 +158,7 @@ export function DealActions({
             alignSelf: "flex-start",
             marginTop: 4,
             background: "var(--accent)",
-            color: "#050B14",
+            color: "var(--accent-foreground, #050B14)",
             textDecoration: "none",
             borderRadius: 8,
             padding: "0.5rem 1rem",

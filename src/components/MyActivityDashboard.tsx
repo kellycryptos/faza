@@ -149,7 +149,7 @@ function ClaimRow({
             onClick={() => writeBondClaim({ address: bondContractAddr, abi: FAZABOND_ABI, functionName: "claim", chainId })}
             disabled={bondPending || bondWaiting}
             style={{
-              background: "var(--accent)", color: "#050B14", border: "none",
+              background: "var(--accent)", color: "var(--accent-foreground, #050B14)", border: "none",
               borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
               fontSize: "0.78rem", fontWeight: 700, cursor: bondPending || bondWaiting ? "not-allowed" : "pointer",
               opacity: bondPending || bondWaiting ? 0.6 : 1,
@@ -168,7 +168,7 @@ function ClaimRow({
             onClick={() => writeOtcClaim({ address: otcContractAddr, abi: FAZAOTC_ABI, functionName: "claim", chainId })}
             disabled={otcPending || otcWaiting}
             style={{
-              background: "var(--accent)", color: "#050B14", border: "none",
+              background: "var(--accent)", color: "var(--accent-foreground, #050B14)", border: "none",
               borderRadius: "var(--radius-btn)", padding: "0.4rem 0.9rem",
               fontSize: "0.78rem", fontWeight: 700, cursor: otcPending || otcWaiting ? "not-allowed" : "pointer",
               opacity: otcPending || otcWaiting ? 0.6 : 1,

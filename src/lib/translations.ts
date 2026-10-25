@@ -97,6 +97,13 @@ export interface Translations {
   templateNoticeDealDesc: string;
   createLiveBondBtn: string;
   createLiveDealBtn: string;
+
+  // Theme
+  themeLabel: string;
+  themeDark: string;
+  themeLight: string;
+  themeSwitchToDark: string;
+  themeSwitchToLight: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -197,6 +204,13 @@ export const translations: Record<Language, Translations> = {
     templateNoticeDealDesc: "Deal #{id} is an ecosystem demo template and has not been created on the Arc blockchain yet. On-chain actions are disabled to prevent contract execution errors.",
     createLiveBondBtn: "+ Create a Live Show-Up Bond",
     createLiveDealBtn: "+ Create a Live OTC Deal",
+
+    // Theme
+    themeLabel: "Theme",
+    themeDark: "Dark",
+    themeLight: "Light",
+    themeSwitchToDark: "Switch to dark mode",
+    themeSwitchToLight: "Switch to light mode",
   },
   zh: {
     // Navigation
@@ -295,6 +309,13 @@ export const translations: Record<Language, Translations> = {
     templateNoticeDealDesc: "交易 #{id} 为生态演示模板，尚未在 Arc 区块链上创建。为避免钱包模拟交易报错，链上操作已暂时禁用。",
     createLiveBondBtn: "+ 发起真实履约契约",
     createLiveDealBtn: "+ 发起真实场外交易",
+
+    // Theme
+    themeLabel: "界面主题",
+    themeDark: "深色",
+    themeLight: "浅色",
+    themeSwitchToDark: "切换至深色模式",
+    themeSwitchToLight: "切换至浅色模式",
   },
 };
 

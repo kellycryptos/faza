@@ -112,7 +112,7 @@ export default function FazaPage() {
           <button
             onClick={() => setNetwork(isTestnet ? "mainnet" : "testnet")}
             style={{
-              background: "var(--accent)", color: "#050B14", border: "none",
+              background: "var(--accent)", color: "var(--accent-foreground, #050B14)", border: "none",
               borderRadius: "var(--radius-btn)", padding: "0.5rem 1.1rem",
               fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
             }}
@@ -418,7 +418,7 @@ export default function FazaPage() {
                 key={idx}
                 style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.02)",
+                  padding: "0.5rem 0.75rem", background: "var(--surface-muted)",
                   border: "1px solid var(--border)", borderRadius: 6, fontSize: "0.78rem",
                 }}
               >
